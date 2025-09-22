@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
 
@@ -7,9 +7,9 @@ interface AuthRequest extends Request {
 }
 
 export const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'cuba-load-board-secret', {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
-  });
+  const secret = process.env.JWT_SECRET || 'cuba-load-board-secret';
+  
+  return jwt.sign({ userId }, secret, { expiresIn: '7d' });
 };
 
 export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {

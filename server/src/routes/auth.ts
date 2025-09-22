@@ -1,9 +1,13 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User';
 import { generateToken, authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
+
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 // Register
 router.post('/register', [
@@ -16,7 +20,7 @@ router.post('/register', [
   body('address.street').notEmpty().withMessage('Dirección requerida'),
   body('address.city').notEmpty().withMessage('Ciudad requerida'),
   body('address.province').notEmpty().withMessage('Provincia requerida')
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -54,7 +58,7 @@ router.post('/register', [
     const token = generateToken(user._id);
 
     // Remove password from response
-    const userResponse = user.toObject();
+    const userResponse = user.toObject() as any;
     delete userResponse.password;
 
     res.status(201).json({
@@ -72,7 +76,7 @@ router.post('/register', [
 router.post('/login', [
   body('email').isEmail().withMessage('Email válido requerido'),
   body('password').notEmpty().withMessage('Contraseña requerida')
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -114,7 +118,7 @@ router.post('/login', [
     const token = generateToken(user._id);
 
     // Remove password from response
-    const userResponse = user.toObject();
+    const userResponse = user.toObject() as any;
     delete userResponse.password;
 
     res.json({
@@ -129,10 +133,10 @@ router.post('/login', [
 });
 
 // Get current user
-router.get('/me', authenticateToken, async (req: any, res) => {
+router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
-    const userResponse = user.toObject();
+    const userResponse = user.toObject() as any;
     delete userResponse.password;
 
     res.json({ user: userResponse });
@@ -143,7 +147,7 @@ router.get('/me', authenticateToken, async (req: any, res) => {
 });
 
 // Refresh token
-router.post('/refresh', authenticateToken, async (req: any, res) => {
+router.post('/refresh', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const user = req.user;
     
@@ -166,7 +170,7 @@ router.post('/change-password', [
   authenticateToken,
   body('currentPassword').notEmpty().withMessage('Contraseña actual requerida'),
   body('newPassword').isLength({ min: 6 }).withMessage('Nueva contraseña debe tener al menos 6 caracteres')
-], async (req: any, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

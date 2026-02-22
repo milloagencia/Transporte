@@ -50,9 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $existing = dbFetchOne("SELECT image_url FROM flights WHERE id=?", [$editId]);
         if (!$imgUrl && $existing) $imgUrl = $existing['image_url'];
         dbExecute("UPDATE flights SET title=?,origin=?,destination=?,airline=?,departure_date=?,return_date=?,price=?,currency=?,availability=?,description=?,highlights=?,image_url=?,is_featured=?,is_active=? WHERE id=?",
-            array_values($d + ['image_url' => $imgUrl]) + [$imgUrl, $d['is_featured'], $d['is_active'], $editId]);
-        // rebuild because order matters
-        dbExecute("UPDATE flights SET title=?,origin=?,destination=?,airline=?,departure_date=?,return_date=?,price=?,currency=?,availability=?,description=?,highlights=?,image_url=?,is_featured=?,is_active=? WHERE id=?",
             [$d['title'],$d['origin'],$d['destination'],$d['airline'],$d['departure_date'],$d['return_date'],$d['price'],$d['currency'],$d['availability'],$d['description'],$d['highlights'],$imgUrl,$d['is_featured'],$d['is_active'],$editId]);
         flashMessage('success', 'Flight updated.');
     } else {

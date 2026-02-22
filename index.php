@@ -19,7 +19,8 @@ $featuredNews = dbFetchAll("SELECT * FROM news ORDER BY is_featured DESC, create
 $featuredCasas = dbFetchAll("SELECT * FROM casas WHERE is_featured=1 AND is_active=1 ORDER BY created_at DESC LIMIT 3");
 
 // Fetch cars by category (one per category)
-$featuredCars = dbFetchAll("SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY created_at DESC) rn FROM cars WHERE is_active=1) t WHERE rn=1 LIMIT 4");
+// Fetch featured cars — one per category (MySQL 5.7+ compatible)
+$featuredCars = dbFetchAll("SELECT c.* FROM cars c INNER JOIN (SELECT category, MAX(id) AS max_id FROM cars WHERE is_active=1 GROUP BY category) sub ON c.id = sub.max_id ORDER BY c.category LIMIT 4");
 
 include __DIR__ . '/includes/header.php';
 ?>

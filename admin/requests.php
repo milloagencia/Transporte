@@ -9,6 +9,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 requireLogin();
 $adminTitle = 'Service Requests';
+$action     = trim($_GET['action'] ?? '');
 $id         = (int)($_GET['id'] ?? 0);
 $status     = trim($_GET['status'] ?? '');
 
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
 }
 
 // Delete
-if ($_GET['action'] ?? '' === 'delete' && $id) {
+if (($action ?? '') === 'delete' && $id) {
     if (!verifyCsrf($_GET['csrf'] ?? '')) { flashMessage('error','Invalid CSRF.'); redirect(SITE_URL.'/admin/requests.php'); }
     dbExecute("DELETE FROM service_requests WHERE id=?", [$id]);
     flashMessage('success', 'Request deleted.');

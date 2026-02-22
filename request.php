@@ -61,7 +61,7 @@ include __DIR__ . '/includes/header.php';
                     <div class="mb-4" style="font-size:4rem">✅</div>
                     <h3 class="fw-700">Request Submitted!</h3>
                     <p class="text-muted mb-4">Thank you! We've received your request and will contact you as soon as possible. You can also reach us directly on WhatsApp for a faster response.</p>
-                    <a href="<?= whatsappLink('Hello! I just submitted a service request on your website. My name is ' . htmlspecialchars_decode($name ?? '')) ?>"
+                    <a href="<?= whatsappLink('Hello! I just submitted a service request on your website. My name is ' . ($name ?? '')) ?>"
                        target="_blank" class="btn btn-whatsapp btn-lg me-2">
                         <i class="fab fa-whatsapp me-2"></i>Follow Up on WhatsApp
                     </a>

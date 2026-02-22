@@ -20,9 +20,10 @@ define('ADMIN_EMAIL', 'admin@yourdomain.com');
 define('WHATSAPP_NUMBER', '+5358040385');
 define('WHATSAPP_DISPLAY', '+53 58040385');
 
-// Admin Credentials (change these!)
+// Admin Credentials (change these before deploying!)
+// To generate a new hash, run: php -r "echo password_hash('YourNewPassword', PASSWORD_DEFAULT);"
 define('ADMIN_USERNAME', 'admin');
-define('ADMIN_PASSWORD_HASH', password_hash('TropiAdmin2024!', PASSWORD_DEFAULT));
+define('ADMIN_PASSWORD_HASH', '$2y$10$sQN5sCaRevM9FS8L1dabs./dq.X5TZqGmVl3Q3ROfjRTAFfqephem');
 
 // Uploads directory
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');

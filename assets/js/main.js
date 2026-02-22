@@ -118,8 +118,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── WhatsApp quick message buttons ───────────────────────────────
     document.querySelectorAll('[data-wa-message]').forEach(btn => {
         btn.addEventListener('click', function () {
-            const msg  = encodeURIComponent(this.dataset.waMessage);
-            const num  = '5358040385';
+            const msg = encodeURIComponent(this.dataset.waMessage);
+            const num = (typeof WHATSAPP_NUMBER !== 'undefined' ? WHATSAPP_NUMBER : '5358040385');
             window.open('https://wa.me/' + num + '?text=' + msg, '_blank');
         });
     });

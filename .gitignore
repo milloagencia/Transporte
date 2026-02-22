@@ -1,0 +1,21 @@
+# TropiCollage Travel Agency — .gitignore
+
+# Uploaded files (user content — add to .gitignore after deploying)
+# uploads/flights/
+# uploads/casas/
+# uploads/cars/
+# uploads/news/
+
+# OS/Editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Install script (should be deleted after use)
+# install.php

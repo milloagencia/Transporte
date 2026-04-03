@@ -1,0 +1,12 @@
+# TropiCollage — Admin .htaccess
+# Restrict admin directory
+
+# Optional: restrict by IP (uncomment and set your IP)
+# Order deny,allow
+# Deny from all
+# Allow from YOUR.IP.ADDRESS.HERE
+
+# Protect PHP files from direct execution of non-PHP files
+<FilesMatch "\.php$">
+    SetHandler application/x-httpd-php
+</FilesMatch>

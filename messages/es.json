@@ -1,0 +1,9 @@
+{
+  "nav": { "home": "Inicio", "offers": "Ofertas de Viaje", "requests": "Solicitudes", "deals": "Mis Acuerdos", "profile": "Perfil", "signIn": "Iniciar Sesión", "signOut": "Cerrar Sesión" },
+  "auth": { "signIn": "Iniciar Sesión", "emailLabel": "Correo electrónico", "emailPlaceholder": "tu@ejemplo.com", "sendLink": "Enviar Magic Link", "checkEmail": "Revisa tu correo", "checkEmailDesc": "Se ha enviado un enlace de acceso a tu correo electrónico." },
+  "offers": { "title": "Ofertas de Viaje", "new": "Nueva Oferta", "origin": "Origen", "destination": "Destino", "rate": "Tarifa", "service": "Tipo de Servicio", "startDeal": "Iniciar Acuerdo" },
+  "requests": { "title": "Solicitudes de Viaje", "new": "Nueva Solicitud", "origin": "Origen", "destination": "Destino", "budget": "Presupuesto", "startDeal": "Iniciar Acuerdo" },
+  "deals": { "title": "Mis Acuerdos", "status": "Estado", "price": "Precio", "propose": "Hacer Propuesta", "accept": "Aceptar", "counter": "Contraofertar", "pay": "Pagar (Simulado)", "confirmComplete": "Confirmar Completado", "cancel": "Cancelar Acuerdo" },
+  "admin": { "title": "Admin", "drivers": "Verificación de Conductores", "approve": "Aprobar", "reject": "Rechazar", "config": "Configuración" },
+  "common": { "save": "Guardar", "cancel": "Cancelar", "loading": "Cargando...", "error": "Algo salió mal" }
+}

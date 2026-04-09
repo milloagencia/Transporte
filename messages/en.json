@@ -1,0 +1,9 @@
+{
+  "nav": { "home": "Home", "offers": "Trip Offers", "requests": "Trip Requests", "deals": "My Deals", "profile": "Profile", "signIn": "Sign In", "signOut": "Sign Out" },
+  "auth": { "signIn": "Sign In", "emailLabel": "Email address", "emailPlaceholder": "you@example.com", "sendLink": "Send Magic Link", "checkEmail": "Check your email", "checkEmailDesc": "A sign in link has been sent to your email address." },
+  "offers": { "title": "Trip Offers", "new": "Post New Offer", "origin": "Origin", "destination": "Destination", "rate": "Rate", "service": "Service Type", "startDeal": "Start Deal" },
+  "requests": { "title": "Trip Requests", "new": "Post Request", "origin": "Origin", "destination": "Destination", "budget": "Budget", "startDeal": "Start Deal" },
+  "deals": { "title": "My Deals", "status": "Status", "price": "Price", "propose": "Make Proposal", "accept": "Accept", "counter": "Counter", "pay": "Pay (Simulated)", "confirmComplete": "Confirm Completed", "cancel": "Cancel Deal" },
+  "admin": { "title": "Admin", "drivers": "Driver Verification", "approve": "Approve", "reject": "Reject", "config": "Platform Config" },
+  "common": { "save": "Save", "cancel": "Cancel", "loading": "Loading...", "error": "Something went wrong" }
+}

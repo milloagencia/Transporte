@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ServiceType { people cargo mixed }
+enum Exclusivity { exclusive shared either }
+enum SizeClass { S M L }
+enum ColdChain { none cooler_ice active_refrigeration }
+enum OfferStatus { active paused cancelled completed }
+enum RequestStatus { open in_negotiation completed cancelled }
+enum DealStatus { negotiating accepted_pending_payment paid_escrow completed cancelled disputed }
+enum ProposalStatus { pending accepted countered rejected }
+enum PaymentStatus { simulated_pending simulated_escrow simulated_released simulated_refunded }
+enum VerificationStatus { pending approved rejected expired }
+enum UserRole { user driver admin }
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  language      String    @default("en")
+  role          UserRole  @default(user)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts         Account[]
+  sessions         Session[]
+  driverProfile    DriverProfile?
+  tripOffers       TripOffer[]
+  tripRequests     TripRequest[]
+  dealsAsDriver    Deal[]         @relation("DealDriver")
+  dealsAsRequester Deal[]         @relation("DealRequester")
+  proposals        Proposal[]
+  walletCredits    WalletCredit[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model DriverProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationStatus VerificationStatus @default(pending)
+  licenseNote        String?
+  insuranceNote      String?
+  inspectionNote     String?
+  adminNote          String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model TripOffer {
+  id                String      @id @default(cuid())
+  driverId          String
+  driver            User        @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  originCity        String
+  originState       String      @default("NE")
+  originZip         String?
+  pickupRadiusMiles Float       @default(10)
+  destCity          String
+  destState         String      @default("NE")
+  destZip           String?
+  startWindowFrom   DateTime
+  startWindowTo     DateTime
+  maxDetourMiles    Float       @default(20)
+  serviceType       ServiceType
+  exclusivity       Exclusivity @default(either)
+  seats             Int?
+  cargoWeightLbs    Float?
+  cargoSizeClass    SizeClass?
+  coldChain         ColdChain   @default(none)
+  proposedRate      Float
+  isRecurring       Boolean     @default(false)
+  recurringDays     String?
+  status            OfferStatus @default(active)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deals             Deal[]
+}
+
+model TripRequest {
+  id                String        @id @default(cuid())
+  requesterId       String
+  requester         User          @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  originCity        String
+  originState       String        @default("NE")
+  originZip         String?
+  destCity          String
+  destState         String        @default("NE")
+  destZip           String?
+  windowFrom        DateTime
+  windowTo          DateTime
+  serviceType       ServiceType
+  passengerCount    Int?
+  cargoWeightLbs    Float?
+  cargoSizeClass    SizeClass?
+  cargoDesc         String?
+  coldChainRequired ColdChain     @default(none)
+  budgetProposed    Float?
+  exclusivity       Exclusivity   @default(either)
+  status            RequestStatus @default(open)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deals             Deal[]
+}
+
+model Deal {
+  id              String       @id @default(cuid())
+  tripOfferId     String?
+  tripOffer       TripOffer?   @relation(fields: [tripOfferId], references: [id])
+  tripRequestId   String?
+  tripRequest     TripRequest? @relation(fields: [tripRequestId], references: [id])
+  driverId        String
+  driver          User         @relation("DealDriver", fields: [driverId], references: [id])
+  requesterId     String
+  requester       User         @relation("DealRequester", fields: [requesterId], references: [id])
+  status          DealStatus   @default(negotiating)
+  exclusivity     Exclusivity  @default(exclusive)
+  finalPrice      Float?
+  platformFeeRate Float        @default(0.10)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  proposals       Proposal[]
+  payment         Payment?
+  completion      CompletionConfirmation?
+  cancellation    Cancellation?
+}
+
+model Proposal {
+  id           String         @id @default(cuid())
+  dealId       String
+  deal         Deal           @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  proposedById String
+  proposedBy   User           @relation(fields: [proposedById], references: [id])
+  price        Float
+  message      String?
+  status       ProposalStatus @default(pending)
+  createdAt    DateTime       @default(now())
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  dealId      String        @unique
+  deal        Deal          @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  status      PaymentStatus @default(simulated_pending)
+  amount      Float
+  platformFee Float
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model CompletionConfirmation {
+  id                     String    @id @default(cuid())
+  dealId                 String    @unique
+  deal                   Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  confirmedByDriverAt    DateTime?
+  confirmedByRequesterAt DateTime?
+  autoReleaseAt          DateTime?
+  createdAt              DateTime  @default(now())
+}
+
+model Cancellation {
+  id            String   @id @default(cuid())
+  dealId        String   @unique
+  deal          Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  cancelledById String
+  reason        String?
+  penaltyRate   Float
+  penaltyAmount Float
+  creditIssued  Float    @default(0)
+  createdAt     DateTime @default(now())
+}
+
+model WalletCredit {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Float
+  reason    String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model PlatformConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}

@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import ProfileForm from "@/components/profile-form"
 
 export default async function ProfilePage() {
   const session = await auth()
@@ -19,9 +20,13 @@ export default async function ProfilePage() {
         <CardHeader><CardTitle>Profile</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm"><strong>Email:</strong> {user.email}</p>
-          <p className="text-sm"><strong>Name:</strong> {user.name ?? "—"}</p>
           <p className="text-sm"><strong>Role:</strong> <Badge>{user.role}</Badge></p>
-          <p className="text-sm"><strong>Language:</strong> {user.language}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle>Edit Profile</CardTitle></CardHeader>
+        <CardContent>
+          <ProfileForm name={user.name} language={user.language} />
         </CardContent>
       </Card>
       <Card>

@@ -7,17 +7,79 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum ServiceType { people cargo mixed }
-enum Exclusivity { exclusive shared either }
-enum SizeClass { S M L }
-enum ColdChain { none cooler_ice active_refrigeration }
-enum OfferStatus { active paused cancelled completed }
-enum RequestStatus { open in_negotiation completed cancelled }
-enum DealStatus { negotiating accepted_pending_payment paid_escrow completed cancelled disputed }
-enum ProposalStatus { pending accepted countered rejected }
-enum PaymentStatus { simulated_pending simulated_escrow simulated_released simulated_refunded }
-enum VerificationStatus { pending approved rejected expired }
-enum UserRole { user driver admin }
+enum ServiceType {
+  people
+  cargo
+  mixed
+}
+
+enum Exclusivity {
+  exclusive
+  shared
+  either
+}
+
+enum SizeClass {
+  S
+  M
+  L
+}
+
+enum ColdChain {
+  none
+  cooler_ice
+  active_refrigeration
+}
+
+enum OfferStatus {
+  active
+  paused
+  cancelled
+  completed
+}
+
+enum RequestStatus {
+  open
+  in_negotiation
+  completed
+  cancelled
+}
+
+enum DealStatus {
+  negotiating
+  accepted_pending_payment
+  paid_escrow
+  completed
+  cancelled
+  disputed
+}
+
+enum ProposalStatus {
+  pending
+  accepted
+  countered
+  rejected
+}
+
+enum PaymentStatus {
+  simulated_pending
+  simulated_escrow
+  simulated_released
+  simulated_refunded
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+  expired
+}
+
+enum UserRole {
+  user
+  driver
+  admin
+}
 
 model User {
   id            String    @id @default(cuid())

@@ -5,5 +5,6 @@
   "requests": { "title": "Trip Requests", "new": "Post Request", "origin": "Origin", "destination": "Destination", "budget": "Budget", "startDeal": "Start Deal" },
   "deals": { "title": "My Deals", "status": "Status", "price": "Price", "propose": "Make Proposal", "accept": "Accept", "counter": "Counter", "pay": "Pay (Simulated)", "confirmComplete": "Confirm Completed", "cancel": "Cancel Deal" },
   "admin": { "title": "Admin", "drivers": "Driver Verification", "approve": "Approve", "reject": "Reject", "config": "Platform Config" },
-  "common": { "save": "Save", "cancel": "Cancel", "loading": "Loading...", "error": "Something went wrong" }
+  "common": { "save": "Save", "cancel": "Cancel", "loading": "Loading...", "error": "Something went wrong" },
+  "profile": { "nameLabel": "Name", "namePlaceholder": "Your name", "languageLabel": "Language", "saveChanges": "Save Changes", "saving": "Saving..." }
 }

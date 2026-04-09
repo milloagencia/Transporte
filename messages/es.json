@@ -5,5 +5,6 @@
   "requests": { "title": "Solicitudes de Viaje", "new": "Nueva Solicitud", "origin": "Origen", "destination": "Destino", "budget": "Presupuesto", "startDeal": "Iniciar Acuerdo" },
   "deals": { "title": "Mis Acuerdos", "status": "Estado", "price": "Precio", "propose": "Hacer Propuesta", "accept": "Aceptar", "counter": "Contraofertar", "pay": "Pagar (Simulado)", "confirmComplete": "Confirmar Completado", "cancel": "Cancelar Acuerdo" },
   "admin": { "title": "Admin", "drivers": "Verificación de Conductores", "approve": "Aprobar", "reject": "Rechazar", "config": "Configuración" },
-  "common": { "save": "Guardar", "cancel": "Cancelar", "loading": "Cargando...", "error": "Algo salió mal" }
+  "common": { "save": "Guardar", "cancel": "Cancelar", "loading": "Cargando...", "error": "Algo salió mal" },
+  "profile": { "nameLabel": "Nombre", "namePlaceholder": "Tu nombre", "languageLabel": "Idioma", "saveChanges": "Guardar Cambios", "saving": "Guardando..." }
 }

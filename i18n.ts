@@ -16,7 +16,9 @@ export default getRequestConfig(async () => {
   const cookieStore = await cookies()
   const cookieLocale = cookieStore.get("NEXT_LOCALE")?.value
   const headerStore = await headers()
-  const locale: Locale =
+  // Public SEO pages force their language (set by middleware from the URL)
+  const forced = headerStore.get("x-page-locale")
+  const locale: Locale = forced === "es" || forced === "en" ? forced :
     cookieLocale && (SUPPORTED_LOCALES as readonly string[]).includes(cookieLocale)
       ? (cookieLocale as Locale)
       : parseAcceptLanguage(headerStore.get("Accept-Language"))

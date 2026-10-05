@@ -19,6 +19,13 @@ export default async function Nav() {
                 <Link href="/offers" className="text-sm text-gray-600 hover:text-gray-900">{t("offers")}</Link>
                 <Link href="/requests" className="text-sm text-gray-600 hover:text-gray-900">{t("requests")}</Link>
                 <Link href="/deals" className="text-sm text-gray-600 hover:text-gray-900">{t("deals")}</Link>
+                {((session.user as { wantsToDrive?: boolean; role?: string }).wantsToDrive || (session.user as { role?: string }).role === "admin") && (
+                  <Link href="/vehicles" className="text-sm text-gray-600 hover:text-gray-900">{t("vehicles")}</Link>
+                )}
+                <Link href="/alerts" className="text-sm text-gray-600 hover:text-gray-900">{t("alerts")}</Link>
+                {(session.user as { role?: string } | undefined)?.role === "admin" && (
+                  <Link href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-800">Admin</Link>
+                )}
               </>
             )}
           </div>

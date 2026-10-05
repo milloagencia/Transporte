@@ -202,6 +202,9 @@ model TripOffer {
   originState       String      @default("NE")
   originZip         String?
   pickupRadiusMiles Float       @default(10)
+  /// Driver goes wherever the customer needs (destCity is then empty). maxTripMiles limits how far.
+  anyDestination    Boolean     @default(false)
+  maxTripMiles      Float?
   destCity          String
   destState         String      @default("NE")
   destZip           String?
@@ -221,6 +224,8 @@ model TripOffer {
   cargoHeightIn     Float?
   openTop           Boolean     @default(false)
   proposedRate      Float
+  /// "trip" = total price for the trip; "mile" = price per mile (used with anyDestination)
+  rateUnit          String      @default("trip")
   isRecurring       Boolean     @default(false)
   recurringDays     String?
   status            OfferStatus @default(active)
@@ -373,6 +378,10 @@ model Vehicle {
   make           String
   model          String
   year           Int?
+  /// License plate. Private: shown only to the owner, admin and the other side of a paid deal.
+  plateNumber    String?
+  plateState     String?
+  color          String?
   category       VehicleCategory
   seats          Int
   cargoLengthIn  Float

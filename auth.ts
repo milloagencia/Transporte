@@ -56,16 +56,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     session: async ({ session, user }) => {
       if (session.user && user) {
-        const u = session.user as typeof session.user & { id: string; role: string }
-        u.id = user.id
-        u.role = (user as typeof user & { role?: string }).role ?? "user"
-        const full = user as typeof user & { status?: string; wantsToDrive?: boolean; wantsToShip?: boolean; onboardedAt?: Date | null }
-        Object.assign(u, {
+        // Only expose what the app needs (the adapter hands us the whole DB row)
+        const full = user as typeof user & { role?: string; status?: string; wantsToDrive?: boolean; wantsToShip?: boolean; onboardedAt?: Date | null }
+        session.user = {
+          id: user.id,
+          email: user.email,
+          name: user.name ?? null,
+          image: user.image ?? null,
+          emailVerified: user.emailVerified ?? null,
+          role: full.role ?? "user",
           status: full.status ?? "active",
           wantsToDrive: Boolean(full.wantsToDrive),
           wantsToShip: Boolean(full.wantsToShip),
           onboarded: Boolean(full.onboardedAt),
-        })
+        } as typeof session.user
       }
       return session
     },

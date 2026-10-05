@@ -108,7 +108,15 @@
     "cold_none": "None",
     "cold_cooler_ice": "Cooler / ice",
     "cold_active_refrigeration": "Active refrigeration",
-    "welcomeDriver": "Welcome! Step 1: add your vehicle below. Step 2: in Profile, request driver verification. Once approved you can post trips."
+    "welcomeDriver": "Welcome! Step 1: add your vehicle below. Step 2: in Profile, request driver verification. Once approved you can post trips.",
+    "otherModel": "My model is not listed (type it)",
+    "modelPlaceholder": "e.g. Odyssey EX",
+    "manualHelp": "Type your vehicle's model and measurements. Approximate values are fine.",
+    "plate": "License plate",
+    "plateState": "Plate state",
+    "color": "Color",
+    "plateHelp": "The plate is private: only the admin and the customer of a paid trip see it, so they can recognise your vehicle.",
+    "plateMissing": "Plate missing"
   },
   "trip": {
     "origin": "Origin city",
@@ -139,7 +147,7 @@
     "postOffer": "Post offer",
     "postRequest": "Post request",
     "posting": "Posting...",
-    "newOffer": "Post a Trip Offer",
+    "newOffer": "Post my availability",
     "newRequest": "Post a Trip Request",
     "capacity": "Capacity",
     "seats": "Seats",
@@ -159,7 +167,24 @@
     "r_offer_cargo_only": "cargo only",
     "r_offer_people_only": "people only",
     "r_different_route": "different route",
-    "r_different_time": "different dates"
+    "r_different_time": "different dates",
+    "offerIntro": "Post when and where you will be available. Example: on October 10 I'll be in Omaha from 10:00 to 11:00 am and can go to Lincoln, or wherever the customer needs.",
+    "whereWhen": "Where and when are you available?",
+    "availableCity": "City where you'll be",
+    "availableFrom": "Available from (date and time)",
+    "availableTo": "Until (date and time)",
+    "windowHelp": "The time range in which you can leave or pick up. Choosing the start fills the end with one hour later; you can change it.",
+    "whereTo": "Where can you go?",
+    "destSpecific": "To a specific city",
+    "destAny": "Wherever the customer needs",
+    "maxTripMiles": "Maximum trip distance (miles, optional)",
+    "maxTripMilesHelp": "Leave empty if you have no limit.",
+    "rateTrip": "Total price for the trip ($)",
+    "rateTripHelp": "What you charge for the whole trip. The customer can propose another price.",
+    "ratePerMile": "Price per mile ($)",
+    "ratePerMileHelp": "Example: $1.50 per mile × 60 miles = $90. You agree the final price with the customer.",
+    "availability": "Available",
+    "anyDestInfo": "This driver goes wherever the customer needs. Priced per mile, agreed according to the destination."
   },
   "errors": {
     "generic": "Something went wrong. Check the data and try again.",
@@ -203,14 +228,19 @@
     "onboarding_intent": "Choose at least one: I need transport or I offer transport.",
     "onboarding_name": "Enter your name.",
     "onboarding_company": "Enter the company name.",
-    "onboarding_phone": "Phone must have 10 digits (US)."
+    "onboarding_phone": "Phone must have 10 digits (US).",
+    "plate_required": "Enter the vehicle's license plate.",
+    "vehicle_make_required": "Enter the make and model.",
+    "vehicle_capacity_required": "Seats, cargo measurements or maximum weight are missing.",
+    "miles_invalid": "Maximum distance must be between 5 and 2000 miles.",
+    "rate_per_mile_invalid": "Price per mile must be between $0.10 and $50."
   },
   "board": {
     "offersTitle": "Trip offers",
     "offersSubtitle": "Drivers with seats or cargo space available. Click a row to see the details.",
     "requestsTitle": "Ride and cargo requests",
     "requestsSubtitle": "People and loads looking for a driver. Filter by your vehicle to see only what fits.",
-    "newOffer": "Post offer",
+    "newOffer": "Post my availability",
     "newRequest": "Post request",
     "origin": "Origin",
     "destination": "Destination",
@@ -281,7 +311,9 @@
     "trips": "Completed trips",
     "company": "Business",
     "offersTransport": "Offers transport",
-    "needsTransport": "Needs transport"
+    "needsTransport": "Needs transport",
+    "vehicle": "Vehicle",
+    "plate": "Plate"
   },
   "account": {
     "payment_hold": "Your account is on hold for a pending payment. You can finish trips in progress but can't post or close new deals. Contact the team to settle it.",

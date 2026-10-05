@@ -1,3 +1,4 @@
+import { coordsOf, roadMiles } from "@/lib/geo"
 // Capacity matching between a driver's offer and a requester's trip request.
 
 export type Capacity = {
@@ -87,13 +88,19 @@ const samePlace = (c1: string, s1: string, c2: string, s2: string) => norm(c1) =
 
 /** Capacity + same route (city/state) + overlapping time windows. */
 export function matchTrip(
-  offer: Capacity & Route & { startWindowFrom: Date; startWindowTo: Date },
+  offer: Capacity & Route & { startWindowFrom: Date; startWindowTo: Date; anyDestination?: boolean | null; maxTripMiles?: number | null },
   req: Need & Route & { windowFrom: Date; windowTo: Date },
 ): MatchResult {
   const result = matchOfferToRequest(offer, req)
   const reasons = [...result.reasons]
-  if (!samePlace(offer.originCity, offer.originState, req.originCity, req.originState) ||
-      !samePlace(offer.destCity, offer.destState, req.destCity, req.destState)) {
+  // A driver who goes "anywhere" fits any destination, up to their maximum trip length
+  const destOk = offer.anyDestination
+    ? offer.maxTripMiles == null || (() => {
+        const miles = roadMiles(coordsOf(req.originCity, req.originState), coordsOf(req.destCity, req.destState))
+        return miles == null || miles <= offer.maxTripMiles!
+      })()
+    : samePlace(offer.destCity, offer.destState, req.destCity, req.destState)
+  if (!samePlace(offer.originCity, offer.originState, req.originCity, req.originState) || !destOk) {
     reasons.unshift("different_route")
   }
   if (offer.startWindowFrom > req.windowTo || offer.startWindowTo < req.windowFrom) reasons.unshift("different_time")

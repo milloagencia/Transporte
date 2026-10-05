@@ -22,6 +22,7 @@ export default async function OffersPage() {
     from: o.startWindowFrom.toISOString(),
     to: o.startWindowTo.toISOString(),
     originCity: o.originCity, originState: o.originState, destCity: o.destCity, destState: o.destState,
+    anyDestination: o.anyDestination, maxTripMiles: o.maxTripMiles, rateUnit: o.rateUnit,
     serviceType: o.serviceType, exclusivity: o.exclusivity,
     seats: o.seats, cargoWeightLbs: o.cargoWeightLbs,
     cargoLengthIn: o.cargoLengthIn, cargoWidthIn: o.cargoWidthIn, cargoHeightIn: o.cargoHeightIn, openTop: o.openTop,

@@ -1,6 +1,7 @@
+import { destLabel, rateLabel } from "@/lib/trip-labels"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { db } from "@/lib/db"
 import { ACTIVE_OWNER } from "@/lib/guards"
 import { auth } from "@/auth"
@@ -15,6 +16,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
   const session = await auth()
   const t = await getTranslations("trip")
   const tv = await getTranslations("vehicles")
+  const locale = await getLocale()
   const offer = await db.tripOffer.findUnique({
     where: { id },
     include: { driver: { select: { id: true, name: true } }, vehicle: true },
@@ -33,7 +35,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
     <div className="mx-auto max-w-2xl space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{offer.originCity}, {offer.originState} → {offer.destCity}, {offer.destState}</CardTitle>
+          <CardTitle>{offer.originCity}, {offer.originState} → {destLabel(offer, locale)}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-2">
@@ -41,9 +43,10 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
             <Badge variant="secondary">{t(offer.exclusivity)}</Badge>
             <Badge variant={offer.status === "active" ? "success" : "secondary"}>{offer.status}</Badge>
           </div>
-          <p className="text-sm"><strong>{t("rate")}:</strong> ${offer.proposedRate}</p>
+          <p className="text-sm"><strong>{t("rate")}:</strong> {rateLabel(offer.proposedRate, offer.rateUnit, locale)}</p>
+          {offer.anyDestination && <p className="rounded-md bg-blue-50 p-2 text-sm text-blue-900">{t("anyDestInfo")}</p>}
           <p className="text-sm"><strong>Driver:</strong> {offer.driver.name ?? "Usuario"}</p>
-          <p className="text-sm"><strong>{t("from")}:</strong> {formatDateTime(offer.startWindowFrom)} – {formatDateTime(offer.startWindowTo)}</p>
+          <p className="text-sm"><strong>{t("availability")}:</strong> {formatDateTime(offer.startWindowFrom)} – {formatDateTime(offer.startWindowTo)}</p>
           {offer.vehicle && (
             <p className="text-sm"><strong>{t("vehicle")}:</strong> {offer.vehicle.make} {offer.vehicle.model} ({tv(`cat_${offer.vehicle.category}`)})</p>
           )}

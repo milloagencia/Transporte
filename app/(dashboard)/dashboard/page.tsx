@@ -1,3 +1,4 @@
+import { destLabel, rateLabel } from "@/lib/trip-labels"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import Link from "next/link"
@@ -30,7 +31,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </CardHeader>
           <CardContent>
             {offers.length === 0 ? <p className="text-sm text-gray-500">No offers yet.</p> : (
-              <ul className="space-y-2">{offers.map((o) => <li key={o.id}><Link href={`/offers/${o.id}`} className="text-sm text-blue-600 hover:underline">{o.originCity} → {o.destCity} (${o.proposedRate})</Link></li>)}</ul>
+              <ul className="space-y-2">{offers.map((o) => <li key={o.id}><Link href={`/offers/${o.id}`} className="text-sm text-blue-600 hover:underline">{o.originCity} → {destLabel(o)} ({rateLabel(o.proposedRate, o.rateUnit)})</Link></li>)}</ul>
             )}
           </CardContent>
         </Card>

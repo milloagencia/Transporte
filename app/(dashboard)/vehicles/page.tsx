@@ -31,6 +31,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <Badge variant="secondary">{t(`cat_${v.category}`)}</Badge>
+                <p><strong>{t("plate")}:</strong> {v.plateNumber ? `${v.plateNumber} (${v.plateState ?? "NE"})` : <span className="text-amber-700">{t("plateMissing")}</span>}{v.color ? ` · ${v.color}` : ""}</p>
                 <p><strong>{tt("seats")}:</strong> {v.seats}</p>
                 <p><strong>{tt("space")}:</strong> {inchesLabel(v.cargoLengthIn, v.cargoWidthIn, v.cargoHeightIn)}{v.openTop ? ` (${tt("openTop")})` : ""}</p>
                 <p><strong>{tt("maxWeight")}:</strong> {Math.round(v.payloadLbs)} lb</p>

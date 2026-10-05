@@ -1,4 +1,5 @@
 import Nav from "@/components/nav"
+import RefreshOnBack from "@/components/refresh-on-back"
 import { getTranslations } from "next-intl/server"
 import { db } from "@/lib/db"
 import { getSessionUser } from "@/lib/guards"
@@ -12,6 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const account = me && me.status !== "active" ? await db.user.findUnique({ where: { id: me.id }, select: { status: true, statusReason: true } }) : null
   return (
     <div className="min-h-screen bg-gray-50">
+      <RefreshOnBack />
       <Nav />
       {account && (account.status === "payment_hold" || account.status === "suspended") && (
         <div className={account.status === "suspended" ? "bg-red-600 text-white" : "bg-amber-400 text-amber-950"}>

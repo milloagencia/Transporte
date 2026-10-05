@@ -108,7 +108,15 @@
     "cold_none": "Ninguna",
     "cold_cooler_ice": "Nevera / hielo",
     "cold_active_refrigeration": "Refrigeración activa",
-    "welcomeDriver": "¡Bienvenido! Paso 1: agrega tu vehículo aquí abajo. Paso 2: en Perfil, pide la verificación de conductor. Cuando la aprobemos podrás publicar viajes."
+    "welcomeDriver": "¡Bienvenido! Paso 1: agrega tu vehículo aquí abajo. Paso 2: en Perfil, pide la verificación de conductor. Cuando la aprobemos podrás publicar viajes.",
+    "otherModel": "Mi modelo no está en la lista (escribirlo)",
+    "modelPlaceholder": "Ej.: Odyssey EX",
+    "manualHelp": "Escribe el modelo y las medidas de tu vehículo. Si no las sabes exactas, pon valores aproximados.",
+    "plate": "Placa (chapa)",
+    "plateState": "Estado de la placa",
+    "color": "Color",
+    "plateHelp": "La placa es privada: solo la ven el administrador y el cliente cuando el viaje está pagado, para reconocer tu vehículo.",
+    "plateMissing": "Falta la placa"
   },
   "trip": {
     "origin": "Ciudad de origen",
@@ -139,7 +147,7 @@
     "postOffer": "Publicar oferta",
     "postRequest": "Publicar solicitud",
     "posting": "Publicando...",
-    "newOffer": "Publicar una oferta de viaje",
+    "newOffer": "Publicar mi disponibilidad",
     "newRequest": "Publicar una solicitud de viaje",
     "capacity": "Capacidad",
     "seats": "Asientos",
@@ -159,7 +167,24 @@
     "r_offer_cargo_only": "solo lleva carga",
     "r_offer_people_only": "solo lleva personas",
     "r_different_route": "otra ruta",
-    "r_different_time": "otras fechas"
+    "r_different_time": "otras fechas",
+    "offerIntro": "Publica cuándo y dónde vas a estar disponible. Ejemplo: el 10 de octubre estaré en Omaha de 10:00 a 11:00 am y puedo ir a Lincoln, o a donde el cliente necesite.",
+    "whereWhen": "¿Dónde y cuándo estás disponible?",
+    "availableCity": "Ciudad donde estarás",
+    "availableFrom": "Disponible desde (fecha y hora)",
+    "availableTo": "Hasta (fecha y hora)",
+    "windowHelp": "Es el rango de tiempo en que puedes salir o recoger. Al elegir la hora de inicio, ponemos una hora después como final; puedes cambiarlo.",
+    "whereTo": "¿A dónde puedes ir?",
+    "destSpecific": "A una ciudad específica",
+    "destAny": "A donde el cliente necesite",
+    "maxTripMiles": "Distancia máxima del viaje (millas, opcional)",
+    "maxTripMilesHelp": "Déjalo vacío si no tienes límite.",
+    "rateTrip": "Precio total del viaje ($)",
+    "rateTripHelp": "Lo que cobras por el viaje completo. El cliente puede proponerte otro precio.",
+    "ratePerMile": "Precio por milla ($)",
+    "ratePerMileHelp": "Ejemplo: $1.50 por milla × 60 millas = $90. El precio final lo acuerdan con el cliente.",
+    "availability": "Disponible",
+    "anyDestInfo": "Este conductor va a donde el cliente necesite. El precio es por milla y se acuerda según el destino."
   },
   "errors": {
     "generic": "Algo salió mal. Revisa los datos e intenta de nuevo.",
@@ -203,14 +228,19 @@
     "onboarding_intent": "Elige al menos una opción: necesito transporte u ofrezco transporte.",
     "onboarding_name": "Escribe tu nombre.",
     "onboarding_company": "Escribe el nombre de la empresa.",
-    "onboarding_phone": "El teléfono debe tener 10 dígitos (EE. UU.)."
+    "onboarding_phone": "El teléfono debe tener 10 dígitos (EE. UU.).",
+    "plate_required": "Escribe la placa (chapa) del vehículo.",
+    "vehicle_make_required": "Escribe la marca y el modelo.",
+    "vehicle_capacity_required": "Faltan asientos, medidas de carga o peso máximo.",
+    "miles_invalid": "La distancia máxima debe estar entre 5 y 2000 millas.",
+    "rate_per_mile_invalid": "El precio por milla debe estar entre $0.10 y $50."
   },
   "board": {
     "offersTitle": "Ofertas de viaje",
     "offersSubtitle": "Conductores con asientos o espacio de carga disponible. Haz clic en una fila para ver el detalle.",
     "requestsTitle": "Solicitudes de viaje y carga",
     "requestsSubtitle": "Personas y cargas que buscan conductor. Filtra por tu vehículo para ver solo lo que te cabe.",
-    "newOffer": "Publicar oferta",
+    "newOffer": "Publicar mi disponibilidad",
     "newRequest": "Publicar solicitud",
     "origin": "Origen",
     "destination": "Destino",
@@ -281,7 +311,9 @@
     "trips": "Viajes completados",
     "company": "Empresa",
     "offersTransport": "Ofrece transporte",
-    "needsTransport": "Busca transporte"
+    "needsTransport": "Busca transporte",
+    "vehicle": "Vehículo",
+    "plate": "Placa"
   },
   "account": {
     "payment_hold": "Tu cuenta está en espera por un pago pendiente. Puedes terminar tus viajes en curso, pero no publicar ni cerrar acuerdos nuevos. Contacta al equipo para regularizarlo.",

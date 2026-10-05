@@ -1,3 +1,4 @@
+import { destLabel, rateLabel } from "@/lib/trip-labels"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
@@ -99,7 +100,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               compatible.map((o) => (
                 <Link key={o.id} href={`/offers/${o.id}`} className="flex items-center justify-between rounded-md border p-2 text-sm hover:bg-gray-50">
                   <span>
-                    {o.originCity} → {o.destCity} · {formatDate(o.startWindowFrom)} · ${o.proposedRate}
+                    {o.originCity} → {destLabel(o)} · {formatDate(o.startWindowFrom)} · {rateLabel(o.proposedRate, o.rateUnit)}
                     {o.vehicle ? ` · ${o.vehicle.make} ${o.vehicle.model}` : ""}
                   </span>
                   <Badge variant="success">{t("fits")}</Badge>

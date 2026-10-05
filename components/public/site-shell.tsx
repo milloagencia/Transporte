@@ -1,4 +1,5 @@
 import Link from "next/link"
+import AccountLink from "@/components/public/account-link"
 import { CITIES, PAGES, SERVICES, UI, paths, type Lang, type ServiceKey } from "@/lib/seo-content"
 
 /** Header + footer for public (indexable) pages. `altHref` is the same page in the other language. */
@@ -14,7 +15,7 @@ export default function SiteShell({ lang, altHref, children }: { lang: Lang; alt
             <Link href={paths.service(lang, "cargo")} className="hidden text-gray-600 hover:text-gray-900 sm:inline">{lang === "es" ? "Envío de carga" : "Cargo"}</Link>
             <Link href={PAGES.pricing[lang]} className="hidden text-gray-600 hover:text-gray-900 min-[400px]:inline">{lang === "es" ? "Precios" : "Pricing"}</Link>
             <Link href={altHref} hrefLang={lang === "es" ? "en" : "es"} className="text-gray-600 hover:text-gray-900">{ui.other}</Link>
-            <Link href={`/auth/signin?lang=${lang}`} className="whitespace-nowrap rounded-md bg-blue-600 px-3 py-2 font-medium text-white hover:bg-blue-700">{ui.signIn}</Link>
+            <AccountLink lang={lang} signInLabel={ui.signIn} />
           </nav>
         </div>
       </header>

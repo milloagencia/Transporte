@@ -54,7 +54,7 @@ export default function OnboardingForm({ firstTime, initial }: { firstTime: bool
     }
     await setLocale(f.language)
     // Drivers go set up their vehicle; people who need transport go to offers/new request
-    router.push(!firstTime ? "/profile" : f.wantsToDrive ? "/vehicles?welcome=1" : "/dashboard?welcome=1")
+    router.replace(!firstTime ? "/profile" : f.wantsToDrive ? "/vehicles?welcome=1" : "/dashboard?welcome=1")
     router.refresh()
   }
 

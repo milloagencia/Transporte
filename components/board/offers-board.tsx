@@ -7,6 +7,7 @@ import { coordsOf, roadMiles } from "@/lib/geo"
 import { US_STATES } from "@/lib/validation"
 import { RatingBadge } from "@/components/stars"
 import AlertButton from "@/components/alert-button"
+import { destLabel, rateLabel } from "@/lib/trip-labels"
 import { ColdBadge, Field, ServiceBadge, SortTh, age, compare, inputCls, shortDateTime, type Sort } from "./board-ui"
 
 export type OfferRow = {
@@ -18,6 +19,9 @@ export type OfferRow = {
   originState: string
   destCity: string
   destState: string
+  anyDestination: boolean
+  maxTripMiles: number | null
+  rateUnit: string
   serviceType: string
   exclusivity: string
   seats: number | null
@@ -65,9 +69,9 @@ export default function OffersBoard({ rows }: { rows: OfferRow[] }) {
     const radius = Number(f.radius)
     const enriched = rows.map((r) => {
       const o = coordsOf(r.originCity, r.originState)
-      const miles = roadMiles(o, coordsOf(r.destCity, r.destState))
+      const miles = r.anyDestination ? null : roadMiles(o, coordsOf(r.destCity, r.destState))
       const dho = searchOrigin ? roadMiles(searchOrigin, o) : null
-      return { ...r, miles, dho, rpm: miles ? r.rate / miles : null }
+      return { ...r, miles, dho, rpm: r.rateUnit === "mile" ? r.rate : miles ? r.rate / miles : null }
     })
     const has = (s: string, q: string) => s.toLowerCase().includes(q.trim().toLowerCase())
     const filtered = enriched.filter((r) => {
@@ -77,8 +81,9 @@ export default function OffersBoard({ rows }: { rows: OfferRow[] }) {
         if (!near && !has(r.originCity, f.origin)) return false
       }
       if (f.originState && r.originState !== f.originState) return false
-      if (f.dest && !has(r.destCity, f.dest)) return false
-      if (f.destState && r.destState !== f.destState) return false
+      // Drivers who go anywhere match every destination search
+      if (f.dest && !r.anyDestination && !has(r.destCity, f.dest)) return false
+      if (f.destState && !r.anyDestination && r.destState !== f.destState) return false
       if (f.dateFrom && new Date(r.to) < new Date(f.dateFrom + "T00:00")) return false
       if (f.dateTo && new Date(r.from) > new Date(f.dateTo + "T23:59")) return false
       if (f.service && r.serviceType !== f.service && !(r.serviceType === "mixed" && f.service !== "mixed")) return false
@@ -87,7 +92,7 @@ export default function OffersBoard({ rows }: { rows: OfferRow[] }) {
       if (f.cold === "active" && r.coldChain !== "active_refrigeration") return false
       if (f.minSeats && (r.seats ?? 0) < Number(f.minSeats)) return false
       if (f.minWeight && (r.cargoWeightLbs ?? 0) < Number(f.minWeight)) return false
-      if (f.maxRate && r.rate > Number(f.maxRate)) return false
+      if (f.maxRate && r.rateUnit !== "mile" && r.rate > Number(f.maxRate)) return false
       return true
     })
     const val = (r: (typeof enriched)[number]): number | string | null => {
@@ -96,7 +101,7 @@ export default function OffersBoard({ rows }: { rows: OfferRow[] }) {
         case "from": return new Date(r.from).getTime()
         case "dho": return r.dho
         case "origin": return `${r.originCity} ${r.originState}`
-        case "dest": return `${r.destCity} ${r.destState}`
+        case "dest": return r.anyDestination ? "~" : `${r.destCity} ${r.destState}`
         case "miles": return r.miles
         case "vehicle": return r.vehicleLabel
         case "seats": return r.seats
@@ -218,7 +223,7 @@ export default function OffersBoard({ rows }: { rows: OfferRow[] }) {
                 <td className="whitespace-nowrap px-2 py-1.5">{shortDateTime(r.from, locale)}</td>
                 {searchOrigin && <td className="px-2 py-1.5 text-slate-600">{r.dho ?? "—"}</td>}
                 <td className="whitespace-nowrap px-2 py-1.5 font-medium">{r.originCity}, {r.originState}</td>
-                <td className="whitespace-nowrap px-2 py-1.5 font-medium">{r.destCity}, {r.destState}</td>
+                <td className={`whitespace-nowrap px-2 py-1.5 font-medium ${r.anyDestination ? "text-blue-700" : ""}`}>{destLabel(r, locale)}</td>
                 <td className="px-2 py-1.5 text-slate-600">{r.miles ? `≈${r.miles}` : "—"}</td>
                 <td className="px-2 py-1.5"><ServiceBadge value={r.serviceType} /></td>
                 <td className="whitespace-nowrap px-2 py-1.5">{r.vehicleLabel ?? "—"}</td>
@@ -228,7 +233,7 @@ export default function OffersBoard({ rows }: { rows: OfferRow[] }) {
                   {r.cargoLengthIn ? `${Math.round(r.cargoLengthIn)}×${Math.round(r.cargoWidthIn ?? 0)}×${r.openTop || r.cargoHeightIn == null ? "∞" : Math.round(r.cargoHeightIn)}` : "—"}
                 </td>
                 <td className="px-2 py-1.5"><ColdBadge value={r.coldChain} /></td>
-                <td className="px-2 py-1.5 text-right font-semibold text-emerald-700">${r.rate.toLocaleString()}</td>
+                <td className="whitespace-nowrap px-2 py-1.5 text-right font-semibold text-emerald-700">{rateLabel(r.rate, r.rateUnit, locale)}</td>
                 <td className="px-2 py-1.5 text-right text-slate-600">{r.rpm ? `$${r.rpm.toFixed(2)}` : "—"}</td>
                 <td className="whitespace-nowrap px-2 py-1.5">
                   <Link href={`/users/${r.driverId}`} onClick={(e) => e.stopPropagation()} className="text-blue-700 hover:underline">{r.driverName}</Link>{" "}<RatingBadge avg={r.ratingAvg ?? undefined} count={r.ratingCount} empty="" />

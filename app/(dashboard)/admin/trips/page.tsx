@@ -1,3 +1,4 @@
+import { destLabel, rateLabel } from "@/lib/trip-labels"
 import Link from "next/link"
 import { db } from "@/lib/db"
 import { formatDateTime } from "@/lib/format"
@@ -16,9 +17,9 @@ export default async function AdminTripsPage({ searchParams }: { searchParams: P
           orderBy: { createdAt: "desc" },
           take: 300,
         })).map((o) => ({
-          id: o.id, href: `/offers/${o.id}`, api: `/api/admin/offers/${o.id}`, route: `${o.originCity}, ${o.originState} → ${o.destCity}, ${o.destState}`,
+          id: o.id, href: `/offers/${o.id}`, api: `/api/admin/offers/${o.id}`, route: `${o.originCity}, ${o.originState} → ${destLabel(o)}`,
           when: formatDateTime(o.startWindowFrom), who: o.driver, status: o.status, open: o.status === "active", closed: o.status === "cancelled",
-          price: `$${o.proposedRate}`, deals: o._count.deals, type: o.serviceType,
+          price: rateLabel(o.proposedRate, o.rateUnit), deals: o._count.deals, type: o.serviceType,
         }))
       : (await db.tripRequest.findMany({
           where: sp.status ? { status: sp.status as "open" } : {},

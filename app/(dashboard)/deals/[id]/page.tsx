@@ -25,6 +25,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
       },
       payment: true,
       completion: true,
+      tripOffer: { select: { vehicle: { select: { make: true, model: true, year: true, color: true, plateNumber: true, plateState: true } } } },
       reviews: true,
     },
   })
@@ -57,6 +58,14 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
           </Badge>
           <p className="text-sm"><strong>Driver:</strong> <Link href={`/users/${deal.driver.id}`} className="text-blue-700 hover:underline">{show(deal.driver)}</Link></p>
           <p className="text-sm"><strong>Requester:</strong> <Link href={`/users/${deal.requester.id}`} className="text-blue-700 hover:underline">{show(deal.requester)}</Link></p>
+          {deal.tripOffer?.vehicle && (() => {
+            const v = deal.tripOffer.vehicle
+            // The plate helps the customer recognise the car; shared together with contact details
+            return (
+              <p className="text-sm"><strong>{t("vehicle")}:</strong> {v.make} {v.model}{v.year ? ` ${v.year}` : ""}{v.color ? ` · ${v.color}` : ""}
+                {contactShared && v.plateNumber ? ` · ${t("plate")}: ${v.plateNumber} (${v.plateState ?? "NE"})` : ""}</p>
+            )
+          })()}
           {deal.finalPrice && <p className="text-sm"><strong>Final Price:</strong> ${deal.finalPrice}</p>}
           {(isDriver || isRequester) && currentUserId && (
             <DealActions

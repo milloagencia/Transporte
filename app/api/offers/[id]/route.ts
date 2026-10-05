@@ -44,6 +44,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const merged = {
     originCity: offer.originCity, originState: offer.originState, originZip: offer.originZip,
     destCity: offer.destCity, destState: offer.destState, destZip: offer.destZip,
+    anyDestination: offer.anyDestination, maxTripMiles: offer.maxTripMiles,
     startWindowFrom: offer.startWindowFrom.toISOString(), startWindowTo: offer.startWindowTo.toISOString(),
     serviceType: offer.serviceType, exclusivity: offer.exclusivity, proposedRate: offer.proposedRate,
     seats: offer.seats, cargoWeightLbs: offer.cargoWeightLbs,

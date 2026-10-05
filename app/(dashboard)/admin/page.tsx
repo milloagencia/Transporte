@@ -65,7 +65,7 @@ export default async function AdminPage() {
               {recentDeals.map((d) => (
                 <li key={d.id} className="flex items-center justify-between py-2">
                   <Link href={`/deals/${d.id}`} className="text-blue-600 hover:underline">
-                    {d.tripOffer ? `${d.tripOffer.originCity} → ${d.tripOffer.destCity} · ${formatDate(d.tripOffer.startWindowFrom)}` : d.id}
+                    {d.tripOffer ? `${d.tripOffer.originCity} → ${d.tripOffer.destCity || "*"} · ${formatDate(d.tripOffer.startWindowFrom)}` : d.id}
                   </Link>
                   <span className="text-gray-600">
                     {d.driver.name ?? d.driver.email} / {d.requester.name ?? d.requester.email} · {d.finalPrice ? `$${d.finalPrice}` : "—"}{" "}

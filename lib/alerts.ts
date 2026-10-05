@@ -30,7 +30,7 @@ const overlaps = (aFrom: Date | null, aTo: Date | null, from: Date, to: Date) =>
 /** Does a new offer satisfy a requester's alert? */
 export function offerMatchesAlert(a: TripAlert, o: TripOffer) {
   if (!near(a.originCity, a.originState, o.originCity, o.originState, a.radiusMiles)) return false
-  if (!near(a.destCity, a.destState, o.destCity, o.destState, a.radiusMiles)) return false
+  if (!o.anyDestination && !near(a.destCity, a.destState, o.destCity, o.destState, a.radiusMiles)) return false
   if (!overlaps(a.dateFrom, a.dateTo, o.startWindowFrom, o.startWindowTo)) return false
   if (a.serviceType === "people" && o.serviceType === "cargo") return false
   if (a.serviceType === "cargo" && o.serviceType === "people") return false
@@ -65,7 +65,8 @@ export function requestMatchesAlert(a: TripAlert, r: TripRequest, vehicle: Vehic
 
 function email(lang: string, kind: "offers" | "requests", trip: { originCity: string; originState: string; destCity: string; destState: string; when: Date }, link: string, unsubscribe: string) {
   const es = lang === "es"
-  const route = `${trip.originCity}, ${trip.originState} → ${trip.destCity}, ${trip.destState}`
+  const dest = trip.destCity ? `${trip.destCity}, ${trip.destState}` : (es ? "cualquier destino" : "any destination")
+  const route = `${trip.originCity}, ${trip.originState} → ${dest}`
   const when = trip.when.toLocaleString(es ? "es-US" : "en-US", { timeZone: "America/Chicago", dateStyle: "medium", timeStyle: "short" })
   const subject = kind === "offers"
     ? (es ? `Nuevo viaje disponible: ${route}` : `New trip available: ${route}`)

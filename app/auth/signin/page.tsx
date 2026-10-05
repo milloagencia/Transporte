@@ -1,3 +1,6 @@
+import RefreshOnBack from "@/components/refresh-on-back"
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -6,12 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { sendMagicLink } from "./actions"
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string; as?: string }> }) {
+  // Already signed in (e.g. came back with the browser's Back button): go to the panel
+  if ((await auth())?.user) redirect("/dashboard")
   const { error, as } = await searchParams
   const t = await getTranslations("auth")
   const message = error === "missing" ? t("missingEmail") : error === "rate" ? t("rateLimited") : error ? t("sendError") : null
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <RefreshOnBack />
       <Card className="w-full max-w-md">
         <CardHeader><CardTitle>{t("signIn")}</CardTitle></CardHeader>
         <CardContent>

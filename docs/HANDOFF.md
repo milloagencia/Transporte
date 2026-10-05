@@ -261,3 +261,9 @@ aprobar conductores sin revisar documentos.
 11. `feat: registro con tipo de cuenta (busca/ofrece transporte, persona/empresa) y próximos pasos`.
 12. `feat: páginas de confianza (quiénes somos, contacto, términos, privacidad), calculadora de precios e índice de servicios`.
 13. `fix: redirigir /es/auth/signin y URLs adivinadas al inicio de sesión; página 404 con marca` — `middleware.ts` redirige `/es|en/<ruta de app>` y alias (`/login`, `/es/iniciar-sesion`, `/registro`…) a `/auth/signin?lang=`; `app/not-found.tsx` bilingüe con SiteShell. Vista móvil pública revisada a 390 px (sin desbordes).
+14. `feat: placa del vehículo, catálogo ampliado, disponibilidad clara con "cualquier destino" y arreglo de sesión al volver atrás`:
+    - Vehicle: `plateNumber` (obligatoria para vehículos nuevos), `plateState`, `color`. Privada: dueño, admin y la otra parte de un deal pagado (`deals/[id]`).
+    - Catálogo: 179 modelos / 29 marcas; opción "mi modelo no está en la lista" dentro de cada marca.
+    - TripOffer: `anyDestination`, `maxTripMiles`, `rateUnit` ("trip" | "mile"). Con destino libre `destCity = ""` y precio por milla. `matchTrip` y alertas lo aceptan para cualquier destino (respetando `maxTripMiles`). Etiquetas en `lib/trip-labels.ts`.
+    - Formulario "Publicar mi disponibilidad": ciudad + ventana de hora (rellena +1 h) + "a una ciudad" / "a donde el cliente necesite".
+    - Sesión: `/auth/signin` y `/auth/verify` redirigen a `/dashboard` si ya hay sesión; `RefreshOnBack` recarga páginas restauradas del caché del navegador; páginas públicas muestran "Mi panel" (`components/public/account-link.tsx`); `session.user` ya no expone toda la fila del usuario.

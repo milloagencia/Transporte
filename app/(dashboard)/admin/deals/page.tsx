@@ -34,7 +34,7 @@ export default async function AdminDealsPage({ searchParams }: { searchParams: P
               return (
                 <tr key={d.id} className="border-t">
                   <td className="px-2 py-1.5"><Link href={`/deals/${d.id}`} className="text-blue-700 hover:underline">#{d.id.slice(-8)}</Link></td>
-                  <td className="whitespace-nowrap px-2 py-1.5">{trip ? `${trip.originCity} → ${trip.destCity}` : "—"}</td>
+                  <td className="whitespace-nowrap px-2 py-1.5">{trip ? `${trip.originCity} → ${trip.destCity || "*"}` : "—"}</td>
                   <td className="px-2 py-1.5"><Link href={`/users/${d.driver.id}`} className="hover:underline">{d.driver.name ?? "—"}</Link></td>
                   <td className="px-2 py-1.5"><Link href={`/users/${d.requester.id}`} className="hover:underline">{d.requester.name ?? "—"}</Link></td>
                   <td className="px-2 py-1.5">{d.finalPrice ? `$${d.finalPrice}` : "—"}</td>

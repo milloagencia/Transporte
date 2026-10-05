@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/select"
+import { StateSelect, useErrorMessage } from "@/components/form-helpers"
 
 type CatalogModel = {
   id: string
@@ -26,7 +27,7 @@ const COLD = ["none", "cooler_ice", "active_refrigeration"]
 const OTHER = "__other__"
 
 const empty = {
-  vehicleModelId: "", make: "", model: "", year: "", category: "other", seats: "",
+  vehicleModelId: "", make: "", model: "", year: "", plateNumber: "", plateState: "NE", color: "", category: "other", seats: "",
   cargoLengthIn: "", cargoWidthIn: "", cargoHeightIn: "", openTop: false, payloadLbs: "", coldChain: "none",
 }
 
@@ -36,7 +37,8 @@ export default function VehicleForm() {
   const [catalog, setCatalog] = useState<CatalogModel[]>([])
   const [make, setMake] = useState("")
   const [form, setForm] = useState(empty)
-  const [fromCatalog, setFromCatalog] = useState(false)
+  const [modelChoice, setModelChoice] = useState("")
+  const errorMessage = useErrorMessage()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const set = (k: keyof typeof empty, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }))
@@ -45,14 +47,20 @@ export default function VehicleForm() {
     fetch("/api/vehicle-models").then((r) => r.json()).then(setCatalog).catch(() => setCatalog([]))
   }, [])
 
-  const makes = useMemo(() => Array.from(new Set(catalog.map((m) => m.make))), [catalog])
+  const makes = useMemo(() => Array.from(new Set(catalog.map((m) => m.make))).sort((a, b) => a.localeCompare(b)), [catalog])
   const models = catalog.filter((m) => m.make === make)
-  const manual = make === OTHER || (!fromCatalog && form.make !== "")
+  const fromCatalog = modelChoice !== "" && modelChoice !== OTHER
+  const manual = make === OTHER || modelChoice === OTHER
 
   function pickModel(id: string) {
+    setModelChoice(id)
+    if (id === OTHER || id === "") {
+      // Model not in the list: keep the brand, the driver types the model and measurements
+      setForm((f) => ({ ...empty, plateNumber: f.plateNumber, plateState: f.plateState, color: f.color, year: f.year, make: id === OTHER ? make : "" }))
+      return
+    }
     const m = catalog.find((x) => x.id === id)
     if (!m) return
-    setFromCatalog(true)
     setForm((f) => ({
       ...f,
       vehicleModelId: m.id,
@@ -80,15 +88,15 @@ export default function VehicleForm() {
     if (res.ok) {
       setForm(empty)
       setMake("")
-      setFromCatalog(false)
+      setModelChoice("")
       router.refresh()
     } else {
-      setError((await res.json().catch(() => ({}))).error ?? "Error")
+      setError(errorMessage((await res.json().catch(() => ({}))).error))
     }
     setSaving(false)
   }
 
-  const showDetails = fromCatalog || make === OTHER
+  const showDetails = fromCatalog || manual
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -99,7 +107,7 @@ export default function VehicleForm() {
             value={make}
             onChange={(e) => {
               setMake(e.target.value)
-              setFromCatalog(false)
+              setModelChoice("")
               setForm({ ...empty, make: e.target.value === OTHER ? "" : e.target.value })
             }}
           >
@@ -111,11 +119,12 @@ export default function VehicleForm() {
         {make && make !== OTHER && (
           <div className="space-y-1">
             <Label>{t("model")}</Label>
-            <Select value={form.vehicleModelId} onChange={(e) => pickModel(e.target.value)}>
+            <Select value={modelChoice} onChange={(e) => pickModel(e.target.value)}>
               <option value="">—</option>
               {models.map((m) => (
                 <option key={m.id} value={m.id}>{m.model}{m.variant ? ` – ${m.variant}` : ""}</option>
               ))}
+              <option value={OTHER}>{t("otherModel")}</option>
             </Select>
           </div>
         )}
@@ -125,8 +134,8 @@ export default function VehicleForm() {
         <>
           {manual && (
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="space-y-1"><Label>{t("make")}</Label><Input value={form.make} onChange={(e) => set("make", e.target.value)} required /></div>
-              <div className="space-y-1"><Label>{t("model")}</Label><Input value={form.model} onChange={(e) => set("model", e.target.value)} required /></div>
+              <div className="space-y-1"><Label>{t("make")}</Label><Input value={form.make} onChange={(e) => set("make", e.target.value)} readOnly={make !== OTHER} required /></div>
+              <div className="space-y-1"><Label>{t("model")}</Label><Input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder={t("modelPlaceholder")} required /></div>
               <div className="space-y-1">
                 <Label>{t("category")}</Label>
                 <Select value={form.category} onChange={(e) => set("category", e.target.value)}>
@@ -136,6 +145,16 @@ export default function VehicleForm() {
             </div>
           )}
           {fromCatalog && <p className="rounded-md bg-amber-50 p-2 text-sm text-amber-800">{t("approx")}</p>}
+          {manual && <p className="rounded-md bg-amber-50 p-2 text-sm text-amber-800">{t("manualHelp")}</p>}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1">
+              <Label>{t("plate")}</Label>
+              <Input value={form.plateNumber} onChange={(e) => set("plateNumber", e.target.value.toUpperCase())} maxLength={10} placeholder="ABC 123" required />
+            </div>
+            <div className="space-y-1"><Label>{t("plateState")}</Label><StateSelect value={form.plateState} onChange={(v) => set("plateState", v)} /></div>
+            <div className="space-y-1"><Label>{t("color")}</Label><Input value={form.color} onChange={(e) => set("color", e.target.value)} maxLength={30} /></div>
+          </div>
+          <p className="-mt-2 text-xs text-gray-500">{t("plateHelp")}</p>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1"><Label>{t("year")}</Label><Input type="number" value={form.year} onChange={(e) => set("year", e.target.value)} /></div>
             <div className="space-y-1">

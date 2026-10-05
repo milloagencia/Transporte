@@ -9,12 +9,18 @@ type Body = Record<string, unknown>
 /** Validates a trip offer. Capacity comes from the vehicle; the driver may offer less. */
 export function buildOfferData(body: Body, vehicle: Vehicle, opts: { allowPast?: boolean } = {}) {
   const origin = parsePlace(body.originCity, body.originState, body.originZip)
-  const dest = parsePlace(body.destCity, body.destState, body.destZip)
+  // "Any destination": the driver goes wherever the customer needs, priced per mile
+  const anyDestination = body.anyDestination === true || body.anyDestination === "true"
+  const dest = anyDestination ? { city: "", state: origin.state, zip: null } : parsePlace(body.destCity, body.destState, body.destZip)
   requireNebraska(origin.state, dest.state)
+  const maxTripMiles = anyDestination ? parseNumber(body.maxTripMiles, 5, 2000, "miles_invalid", { optional: true }) : null
+  const rateUnit = anyDestination ? "mile" : "trip"
   const { from, to } = parseWindow(body.startWindowFrom, body.startWindowTo, opts)
   const serviceType = parseEnum(body.serviceType, SERVICE_TYPES, "people")
   const exclusivity = parseEnum(body.exclusivity, EXCLUSIVITY, "either")
-  const proposedRate = parseNumber(body.proposedRate, 1, MAX_PRICE, "rate_invalid")!
+  const proposedRate = rateUnit === "mile"
+    ? parseNumber(body.proposedRate, 0.1, 50, "rate_per_mile_invalid")!
+    : parseNumber(body.proposedRate, 1, MAX_PRICE, "rate_invalid")!
   const carriesPeople = serviceType !== "cargo"
   const carriesCargo = serviceType !== "people"
   if (carriesPeople && vehicle.seats < 1) throw new ValidationError("vehicle_no_seats")
@@ -30,6 +36,7 @@ export function buildOfferData(body: Body, vehicle: Vehicle, opts: { allowPast?:
     vehicleId: vehicle.id,
     originCity: origin.city, originState: origin.state, originZip: origin.zip,
     destCity: dest.city, destState: dest.state, destZip: dest.zip,
+    anyDestination, maxTripMiles, rateUnit,
     startWindowFrom: from, startWindowTo: to,
     serviceType, exclusivity, proposedRate, seats, cargoWeightLbs,
     cargoLengthIn: carriesCargo ? vehicle.cargoLengthIn : null,

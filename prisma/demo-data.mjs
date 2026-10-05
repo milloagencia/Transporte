@@ -81,7 +81,7 @@ export async function seedDemo(db) {
     await db.driverProfile.create({
       data: { userId: u.id, verificationStatus: "approved", licenseNote: "Demo", insuranceNote: "Demo", inspectionNote: "Demo" },
     })
-    vehicles[d.key] = await db.vehicle.create({ data: { ...d.vehicle, ownerId: u.id } })
+    vehicles[d.key] = await db.vehicle.create({ data: { ...d.vehicle, plateNumber: `DEMO ${String(Object.keys(vehicles).length + 1).padStart(2, "0")}`, plateState: "NE", ownerId: u.id } })
   }
   for (const r of REQUESTERS) {
     users[r.key] = await db.user.create({
@@ -109,6 +109,18 @@ export async function seedDemo(db) {
       },
     })
   }
+  // A driver who goes wherever the customer needs, priced per mile
+  await db.tripOffer.create({
+    data: {
+      driverId: users.yanelis.id, vehicleId: vehicles.yanelis.id,
+      originCity: "Omaha", originZip: "68102", originState: "NE",
+      destCity: "", destState: "NE", anyDestination: true, maxTripMiles: 200, rateUnit: "mile",
+      startWindowFrom: at(4, 10), startWindowTo: at(4, 11),
+      serviceType: "people", exclusivity: "either", seats: 6,
+      coldChain: vehicles.yanelis.coldChain, proposedRate: 1.5, status: "active",
+    },
+  })
+
 
   const requests = {}
   for (const [key, who, service, o, d, day, hour, win, budget, pax, c] of REQUESTS) {

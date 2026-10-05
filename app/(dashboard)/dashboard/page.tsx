@@ -4,7 +4,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default async function DashboardPage() {
+import NextSteps from "@/components/next-steps"
+import { getSessionUser } from "@/lib/guards"
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
+  const me = await getSessionUser()
+  const { welcome } = await searchParams
   const session = await auth()
   if (!session?.user) return null
   const userId = (session.user as { id: string }).id
@@ -16,6 +21,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-bold">Dashboard</h1>
+      {me && <NextSteps me={me} welcome={welcome === "1"} />}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

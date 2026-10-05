@@ -1,43 +1,49 @@
-import { db } from "@/lib/db"
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
+import { db } from "@/lib/db"
+import { getSessionUser, ACTIVE_OWNER } from "@/lib/guards"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { ratingsFor } from "@/lib/ratings"
+import OffersBoard, { type OfferRow } from "@/components/board/offers-board"
 
 export default async function OffersPage() {
+  const me = await getSessionUser()
+  const t = await getTranslations("board")
   const offers = await db.tripOffer.findMany({
-    where: { status: "active" },
-    include: { driver: { select: { name: true, email: true } } },
-    orderBy: { createdAt: "desc" },
+    where: { status: "active", startWindowTo: { gte: new Date() }, driver: ACTIVE_OWNER },
+    include: { driver: { select: { name: true } }, vehicle: { select: { make: true, model: true, category: true } } },
+    orderBy: { startWindowFrom: "asc" },
+    take: 1000,
   })
+  const ratings = await ratingsFor(offers.map((o) => o.driverId))
+  const rows: OfferRow[] = offers.map((o) => ({
+    id: o.id,
+    createdAt: o.createdAt.toISOString(),
+    from: o.startWindowFrom.toISOString(),
+    to: o.startWindowTo.toISOString(),
+    originCity: o.originCity, originState: o.originState, destCity: o.destCity, destState: o.destState,
+    serviceType: o.serviceType, exclusivity: o.exclusivity,
+    seats: o.seats, cargoWeightLbs: o.cargoWeightLbs,
+    cargoLengthIn: o.cargoLengthIn, cargoWidthIn: o.cargoWidthIn, cargoHeightIn: o.cargoHeightIn, openTop: o.openTop,
+    coldChain: o.coldChain, rate: o.proposedRate,
+    driverName: o.driver.name ?? "Usuario",
+    driverId: o.driverId,
+    ratingAvg: ratings.get(o.driverId)?.avg ?? null,
+    ratingCount: ratings.get(o.driverId)?.count ?? 0,
+    vehicleLabel: o.vehicle ? `${o.vehicle.make} ${o.vehicle.model}` : null,
+    vehicleCategory: o.vehicle?.category ?? null,
+    mine: o.driverId === me?.id,
+  }))
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Trip Offers</h1>
-        <Link href="/offers/new"><Button>Post New Offer</Button></Link>
-      </div>
-      {offers.length === 0 ? (
-        <p className="text-gray-500">No offers yet. Be the first to post one!</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {offers.map((o) => (
-            <Card key={o.id}>
-              <CardHeader>
-                <CardTitle className="text-base">{o.originCity}, {o.originState} → {o.destCity}, {o.destState}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex gap-2">
-                  <Badge>{o.serviceType}</Badge>
-                  <Badge variant="secondary">{o.exclusivity}</Badge>
-                </div>
-                <p className="text-sm">Rate: <strong>${o.proposedRate}</strong></p>
-                <p className="text-sm">Driver: {o.driver.name ?? o.driver.email}</p>
-                <Link href={`/offers/${o.id}`}><Button size="sm" className="w-full mt-2">View Details</Button></Link>
-              </CardContent>
-            </Card>
-          ))}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t("offersTitle")}</h1>
+          <p className="text-sm text-slate-600">{t("offersSubtitle")}</p>
         </div>
-      )}
+        <Link href="/offers/new"><Button>{t("newOffer")}</Button></Link>
+      </div>
+      <OffersBoard rows={rows} />
     </div>
   )
 }

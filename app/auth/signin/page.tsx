@@ -1,48 +1,30 @@
-"use client"
-import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { sendMagicLink } from "./actions"
 
-export default function SignInPage() {
-  const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    await signIn("email", { email, callbackUrl: "/dashboard", redirect: false })
-    setSent(true)
-    setLoading(false)
-  }
-
-  if (sent) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader><CardTitle>Check your email</CardTitle></CardHeader>
-          <CardContent><p className="text-gray-600">A sign in link has been sent to <strong>{email}</strong>. In development, check your server console.</p></CardContent>
-        </Card>
-      </div>
-    )
-  }
+export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string; as?: string }> }) {
+  const { error, as } = await searchParams
+  const t = await getTranslations("auth")
+  const message = error === "missing" ? t("missingEmail") : error === "rate" ? t("rateLimited") : error ? t("sendError") : null
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader><CardTitle>Sign In</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("signIn")}</CardTitle></CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {as === "driver" && <p className="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900">{t("asDriver")}</p>}
+          {as === "shipper" && <p className="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900">{t("asShipper")}</p>}
+          <form action={sendMagicLink} className="space-y-4">
+            {as && <input type="hidden" name="as" value={as} />}
             <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Label htmlFor="email">{t("emailLabel")}</Label>
+              <Input id="email" name="email" type="email" placeholder={t("emailPlaceholder")} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending..." : "Send Magic Link"}
-            </Button>
+            {message && <p className="text-sm text-red-600">{message}</p>}
+            <Button type="submit" className="w-full">{t("sendLink")}</Button>
           </form>
         </CardContent>
       </Card>

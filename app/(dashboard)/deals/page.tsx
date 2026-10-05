@@ -12,8 +12,8 @@ export default async function DealsPage() {
   const deals = await db.deal.findMany({
     where: { OR: [{ driverId: userId }, { requesterId: userId }] },
     include: {
-      driver: { select: { name: true, email: true } },
-      requester: { select: { name: true, email: true } },
+      driver: { select: { name: true } },
+      requester: { select: { name: true } },
       proposals: { orderBy: { createdAt: "desc" }, take: 1 },
     },
     orderBy: { createdAt: "desc" },
@@ -34,8 +34,8 @@ export default async function DealsPage() {
                   <Badge variant={d.status === "completed" ? "success" : d.status === "cancelled" ? "destructive" : "default"}>
                     {d.status}
                   </Badge>
-                  <p className="text-sm">Driver: {d.driver.name ?? d.driver.email}</p>
-                  <p className="text-sm">Requester: {d.requester.name ?? d.requester.email}</p>
+                  <p className="text-sm">Driver: {d.driver.name ?? "Usuario"}</p>
+                  <p className="text-sm">Requester: {d.requester.name ?? "Usuario"}</p>
                   {d.proposals[0] && <p className="text-sm">Latest proposal: ${d.proposals[0].price}</p>}
                 </CardContent>
               </Card>

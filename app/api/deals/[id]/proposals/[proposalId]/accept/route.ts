@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { accountBlock } from "@/lib/guards"
 
 export async function POST(
   _: Request,
@@ -10,6 +11,8 @@ export async function POST(
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const { id: dealId, proposalId } = await params
   const userId = (session.user as { id: string }).id
+  const blocked = accountBlock({ status: (session.user as { status?: string }).status ?? "active" }, "create")
+  if (blocked) return blocked
 
   const deal = await db.deal.findUnique({ where: { id: dealId } })
   if (!deal) return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -17,8 +20,15 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  if (deal.status !== "negotiating") {
+    return NextResponse.json({ error: "Deal not in negotiating state" }, { status: 400 })
+  }
+
   const proposal = await db.proposal.findUnique({ where: { id: proposalId } })
   if (!proposal || proposal.dealId !== dealId) return NextResponse.json({ error: "Not found" }, { status: 404 })
+  if (proposal.status !== "pending") {
+    return NextResponse.json({ error: "This proposal was already countered or closed" }, { status: 400 })
+  }
   if (proposal.proposedById === userId) {
     return NextResponse.json({ error: "Cannot accept your own proposal" }, { status: 400 })
   }

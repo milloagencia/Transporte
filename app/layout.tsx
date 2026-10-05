@@ -3,9 +3,18 @@ import "./globals.css"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getMessages } from "next-intl/server"
 
+import { SITE_URL } from "@/lib/seo-content"
+
 export const metadata: Metadata = {
-  title: "Collage Transport",
-  description: "Nebraska transport marketplace",
+  metadataBase: new URL(SITE_URL),
+  title: { default: "Collage Transport", template: "%s | Collage Transport" },
+  description: "Rides and cargo between Nebraska cities. Viajes y envíos de carga entre ciudades de Nebraska.",
+  applicationName: "Collage Transport",
+  // Set GOOGLE_SITE_VERIFICATION / BING_SITE_VERIFICATION in Hostinger to verify the site in Search Console / Bing
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
+  },
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

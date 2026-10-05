@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { getSessionUser } from "@/lib/guards"
 import { db } from "@/lib/db"
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -20,5 +21,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     },
   })
   if (!deal) return NextResponse.json({ error: "Not found" }, { status: 404 })
+  const me = await getSessionUser()
+  if (!me || (me.id !== deal.driverId && me.id !== deal.requesterId && me.role !== "admin")) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
   return NextResponse.json(deal)
 }

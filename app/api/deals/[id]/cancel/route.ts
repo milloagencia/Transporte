@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { accountBlock } from "@/lib/guards"
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const { id: dealId } = await params
   const userId = (session.user as { id: string }).id
+  const blocked = accountBlock({ status: (session.user as { status?: string }).status ?? "active" }, "basic")
+  if (blocked) return blocked
   const body = await req.json()
 
   const deal = await db.deal.findUnique({

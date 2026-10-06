@@ -1,0 +1,225 @@
+// Approximate reference capacities for common US vehicles.
+// seats = passenger seats (driver not counted).
+// cargo = largest cargo area: rear seats folded for cars/SUVs/minivans,
+//         bed for pickups (open top), cargo box for vans/trucks/trailers.
+// Width is the narrowest point (between wheel wells). Units: inches / lbs.
+// These are estimates: drivers can adjust the numbers for their own vehicle.
+
+const sedan = { category: "sedan", seats: 4, cargoLengthIn: 40, cargoWidthIn: 38, cargoHeightIn: 18, payloadLbs: 850, note: "Trunk only" }
+const compactSuv = { category: "suv", seats: 4, cargoLengthIn: 68, cargoWidthIn: 40, cargoHeightIn: 30, payloadLbs: 1000 }
+const midSuv = { category: "suv", seats: 4, cargoLengthIn: 72, cargoWidthIn: 42, cargoHeightIn: 31, payloadLbs: 1200 }
+const suv3 = { category: "suv_3row", seats: 6, cargoLengthIn: 78, cargoWidthIn: 45, cargoHeightIn: 31, payloadLbs: 1400 }
+const minivan = { category: "minivan", seats: 7, cargoLengthIn: 100, cargoWidthIn: 48, cargoHeightIn: 45, payloadLbs: 1300 }
+const pickup = (lengthIn, widthIn, heightIn, payloadLbs) => ({ category: "pickup", seats: 4, cargoLengthIn: lengthIn, cargoWidthIn: widthIn, cargoHeightIn: heightIn, openTop: true, payloadLbs })
+const compact = { category: "sedan", seats: 4, cargoLengthIn: 36, cargoWidthIn: 36, cargoHeightIn: 17, payloadLbs: 800, note: "Trunk only" }
+const hatch = { category: "sedan", seats: 4, cargoLengthIn: 58, cargoWidthIn: 38, cargoHeightIn: 28, payloadLbs: 850, note: "Rear seats folded" }
+const smallSuv = { category: "suv", seats: 4, cargoLengthIn: 62, cargoWidthIn: 38, cargoHeightIn: 28, payloadLbs: 900 }
+const bigSuv = { category: "suv_3row", seats: 7, cargoLengthIn: 95, cargoWidthIn: 48, cargoHeightIn: 37, payloadLbs: 1600 }
+const hdPickup = (lengthIn) => pickup(lengthIn, 50, 21, 3500)
+const van = (lengthIn, widthIn, heightIn, payloadLbs) => ({ category: "cargo_van", seats: 1, cargoLengthIn: lengthIn, cargoWidthIn: widthIn, cargoHeightIn: heightIn, payloadLbs })
+
+// ---- More common US models (approximate values; drivers can adjust)
+const MORE = [
+  // Toyota
+  { make: "Toyota", model: "Prius", ...hatch },
+  { make: "Toyota", model: "Avalon", ...sedan },
+  { make: "Toyota", model: "Corolla Cross", ...smallSuv },
+  { make: "Toyota", model: "Venza", ...compactSuv },
+  { make: "Toyota", model: "4Runner", ...midSuv, cargoLengthIn: 75 },
+  { make: "Toyota", model: "Grand Highlander", ...suv3, seats: 7 },
+  { make: "Toyota", model: "Sequoia", ...bigSuv },
+  { make: "Toyota", model: "Tundra", variant: "6.5 ft bed", ...pickup(78, 49, 21, 1700) },
+  // Honda
+  { make: "Honda", model: "Fit", ...hatch },
+  { make: "Honda", model: "HR-V", ...smallSuv },
+  { make: "Honda", model: "Passport", ...midSuv },
+  { make: "Honda", model: "Ridgeline", variant: "5.3 ft bed", ...pickup(64, 50, 20, 1500) },
+  // Nissan
+  { make: "Nissan", model: "Versa", ...compact },
+  { make: "Nissan", model: "Sentra", ...compact },
+  { make: "Nissan", model: "Kicks", ...smallSuv },
+  { make: "Nissan", model: "Murano", ...midSuv },
+  { make: "Nissan", model: "Pathfinder", ...suv3, seats: 7 },
+  { make: "Nissan", model: "Armada", ...bigSuv },
+  { make: "Nissan", model: "Frontier", variant: "6 ft bed", ...pickup(73, 42, 18, 1300) },
+  { make: "Nissan", model: "Titan", variant: "5.5 ft bed", ...pickup(67, 50, 21, 1600) },
+  { make: "Nissan", model: "NV Cargo", variant: "High roof", ...van(120, 54, 76, 3000) },
+  // Hyundai / Kia / Genesis
+  { make: "Hyundai", model: "Accent", ...compact },
+  { make: "Hyundai", model: "Sonata", ...sedan },
+  { make: "Hyundai", model: "Venue", ...smallSuv },
+  { make: "Hyundai", model: "Kona", ...smallSuv },
+  { make: "Hyundai", model: "Santa Fe", ...midSuv, seats: 4 },
+  { make: "Hyundai", model: "Palisade", ...suv3, seats: 7 },
+  { make: "Hyundai", model: "Santa Cruz", variant: "4.3 ft bed", ...pickup(52, 43, 19, 1500) },
+  { make: "Kia", model: "Forte", ...compact },
+  { make: "Kia", model: "K5", ...sedan },
+  { make: "Kia", model: "Soul", ...hatch },
+  { make: "Kia", model: "Seltos", ...smallSuv },
+  { make: "Kia", model: "Sportage", ...compactSuv },
+  { make: "Kia", model: "Sorento", ...suv3 },
+  { make: "Kia", model: "Telluride", ...suv3, seats: 7 },
+  // Chevrolet / GMC / Buick / Cadillac
+  { make: "Chevrolet", model: "Malibu", ...sedan },
+  { make: "Chevrolet", model: "Spark", ...compact, seats: 3 },
+  { make: "Chevrolet", model: "Trax", ...smallSuv },
+  { make: "Chevrolet", model: "Trailblazer", ...smallSuv },
+  { make: "Chevrolet", model: "Blazer", ...midSuv },
+  { make: "Chevrolet", model: "Colorado", variant: "5.2 ft bed", ...pickup(62, 44, 20, 1500) },
+  { make: "Chevrolet", model: "Silverado 2500HD", variant: "6.9 ft bed", ...hdPickup(82) },
+  { make: "Chevrolet", model: "Silverado 2500HD", variant: "8.2 ft bed", ...hdPickup(98) },
+  { make: "Chevrolet", model: "Express 3500", variant: "Passenger 15", category: "passenger_van", seats: 14, cargoLengthIn: 30, cargoWidthIn: 52, cargoHeightIn: 50, payloadLbs: 3500, note: "Space behind last row" },
+  { make: "GMC", model: "Terrain", ...compactSuv },
+  { make: "GMC", model: "Acadia", ...suv3, seats: 7 },
+  { make: "GMC", model: "Yukon", ...bigSuv },
+  { make: "GMC", model: "Yukon XL", ...bigSuv, cargoLengthIn: 110 },
+  { make: "GMC", model: "Canyon", variant: "5.2 ft bed", ...pickup(62, 44, 20, 1500) },
+  { make: "GMC", model: "Sierra 1500", variant: "6.6 ft bed", ...pickup(79, 50, 22, 1800) },
+  { make: "GMC", model: "Sierra 2500HD", variant: "6.9 ft bed", ...hdPickup(82) },
+  { make: "GMC", model: "Savana 2500", variant: "Cargo", ...van(146, 52, 53, 3200) },
+  { make: "Buick", model: "Encore GX", ...smallSuv },
+  { make: "Buick", model: "Envision", ...compactSuv },
+  { make: "Buick", model: "Enclave", ...suv3, seats: 7 },
+  { make: "Cadillac", model: "Escalade", ...bigSuv },
+  // Ford / Lincoln
+  { make: "Ford", model: "Fusion", ...sedan },
+  { make: "Ford", model: "Mustang", ...compact, seats: 3 },
+  { make: "Ford", model: "EcoSport", ...smallSuv },
+  { make: "Ford", model: "Bronco Sport", ...smallSuv },
+  { make: "Ford", model: "Bronco", ...midSuv },
+  { make: "Ford", model: "Edge", ...midSuv },
+  { make: "Ford", model: "Maverick", variant: "4.5 ft bed", ...pickup(54, 42, 20, 1500) },
+  { make: "Ford", model: "Ranger", variant: "5 ft bed", ...pickup(61, 45, 20, 1600) },
+  { make: "Ford", model: "F-150", variant: "8 ft bed", ...pickup(97, 50, 21, 1900) },
+  { make: "Ford", model: "F-250", variant: "6.75 ft bed", ...hdPickup(81) },
+  { make: "Ford", model: "F-250", variant: "8 ft bed", ...hdPickup(97) },
+  { make: "Ford", model: "Transit", variant: "148 WB high roof", ...van(172, 51, 81, 3500) },
+  { make: "Ford", model: "E-Series", variant: "Cargo", ...van(124, 52, 52, 3500) },
+  { make: "Lincoln", model: "Navigator", ...bigSuv },
+  { make: "Lincoln", model: "Aviator", ...suv3 },
+  // Stellantis
+  { make: "Ram", model: "2500", variant: "6.4 ft bed", ...hdPickup(76) },
+  { make: "Ram", model: "2500", variant: "8 ft bed", ...hdPickup(98) },
+  { make: "Ram", model: "3500", variant: "8 ft bed", ...pickup(98, 51, 20, 4500) },
+  { make: "Jeep", model: "Wrangler", ...smallSuv, cargoLengthIn: 50 },
+  { make: "Jeep", model: "Compass", ...smallSuv },
+  { make: "Jeep", model: "Cherokee", ...compactSuv },
+  { make: "Jeep", model: "Grand Cherokee L", ...suv3 },
+  { make: "Jeep", model: "Wagoneer", ...bigSuv },
+  { make: "Jeep", model: "Gladiator", variant: "5 ft bed", ...pickup(60, 44, 19, 1500) },
+  { make: "Dodge", model: "Charger", ...sedan },
+  { make: "Dodge", model: "Durango", ...suv3 },
+  { make: "Dodge", model: "Grand Caravan", ...minivan },
+  { make: "Dodge", model: "Journey", ...compactSuv },
+  { make: "Chrysler", model: "300", ...sedan },
+  { make: "Chrysler", model: "Voyager", ...minivan },
+  // Subaru / Mazda / Mitsubishi
+  { make: "Subaru", model: "Impreza", ...hatch },
+  { make: "Subaru", model: "Legacy", ...sedan },
+  { make: "Subaru", model: "Crosstrek", ...smallSuv },
+  { make: "Subaru", model: "Forester", ...compactSuv, cargoHeightIn: 33 },
+  { make: "Subaru", model: "Ascent", ...suv3, seats: 7 },
+  { make: "Mazda", model: "Mazda3", ...compact },
+  { make: "Mazda", model: "CX-30", ...smallSuv },
+  { make: "Mazda", model: "CX-5", ...compactSuv },
+  { make: "Mazda", model: "CX-50", ...compactSuv },
+  { make: "Mazda", model: "CX-9", ...suv3 },
+  { make: "Mazda", model: "CX-90", ...suv3, seats: 7 },
+  { make: "Mitsubishi", model: "Mirage", ...compact },
+  { make: "Mitsubishi", model: "Outlander", ...suv3 },
+  // Volkswagen
+  { make: "Volkswagen", model: "Jetta", ...sedan },
+  { make: "Volkswagen", model: "Passat", ...sedan },
+  { make: "Volkswagen", model: "Taos", ...smallSuv },
+  { make: "Volkswagen", model: "Tiguan", ...compactSuv },
+  { make: "Volkswagen", model: "Atlas", ...suv3, seats: 7 },
+  // Tesla / premium
+  { make: "Tesla", model: "Model Y", ...compactSuv },
+  { make: "Tesla", model: "Model S", ...hatch },
+  { make: "Tesla", model: "Model X", ...suv3 },
+  { make: "BMW", model: "3 Series", ...sedan },
+  { make: "BMW", model: "X3", ...compactSuv },
+  { make: "BMW", model: "X5", ...midSuv },
+  { make: "Mercedes-Benz", model: "C-Class", ...sedan },
+  { make: "Mercedes-Benz", model: "GLC", ...compactSuv },
+  { make: "Mercedes-Benz", model: "GLE", ...midSuv },
+  { make: "Mercedes-Benz", model: "Metris", variant: "Cargo", ...van(100, 50, 54, 2500) },
+  { make: "Mercedes-Benz", model: "Sprinter", variant: "Passenger 12", category: "passenger_van", seats: 11, cargoLengthIn: 40, cargoWidthIn: 53, cargoHeightIn: 70, payloadLbs: 3000, note: "Space behind last row" },
+  { make: "Lexus", model: "ES", ...sedan },
+  { make: "Lexus", model: "RX", ...midSuv },
+  { make: "Lexus", model: "GX", ...suv3 },
+  { make: "Acura", model: "MDX", ...suv3 },
+  { make: "Infiniti", model: "QX60", ...suv3 },
+  { make: "Volvo", model: "XC90", ...suv3 },
+  // Box trucks by brand
+  { make: "Isuzu", model: "NPR", variant: "16 ft box", category: "box_truck", seats: 2, cargoLengthIn: 192, cargoWidthIn: 92, cargoHeightIn: 90, payloadLbs: 5000 },
+  { make: "Isuzu", model: "NPR", variant: "20 ft box", category: "box_truck", seats: 2, cargoLengthIn: 240, cargoWidthIn: 96, cargoHeightIn: 96, payloadLbs: 7000 },
+  { make: "Trailer", model: "Utility open 5x8", category: "trailer", seats: 0, cargoLengthIn: 96, cargoWidthIn: 60, cargoHeightIn: null, openTop: true, payloadLbs: 1500 },
+  { make: "Trailer", model: "Utility open 6x12", category: "trailer", seats: 0, cargoLengthIn: 144, cargoWidthIn: 72, cargoHeightIn: null, openTop: true, payloadLbs: 2500 },
+]
+
+export const VEHICLE_CATALOG = [
+  // Sedans
+  { make: "Toyota", model: "Camry", ...sedan },
+  { make: "Toyota", model: "Corolla", ...sedan, cargoLengthIn: 38 },
+  { make: "Honda", model: "Accord", ...sedan },
+  { make: "Honda", model: "Civic", ...sedan, cargoLengthIn: 38 },
+  { make: "Nissan", model: "Altima", ...sedan },
+  { make: "Hyundai", model: "Elantra", ...sedan, cargoLengthIn: 38 },
+  { make: "Tesla", model: "Model 3", ...sedan },
+  // SUVs
+  { make: "Toyota", model: "RAV4", ...compactSuv },
+  { make: "Honda", model: "CR-V", ...compactSuv },
+  { make: "Chevrolet", model: "Equinox", ...compactSuv },
+  { make: "Nissan", model: "Rogue", ...compactSuv },
+  { make: "Ford", model: "Escape", ...compactSuv },
+  { make: "Hyundai", model: "Tucson", ...compactSuv },
+  { make: "Jeep", model: "Grand Cherokee", ...midSuv },
+  { make: "Subaru", model: "Outback", ...midSuv, cargoHeightIn: 28 },
+  { make: "Toyota", model: "Highlander", ...suv3 },
+  { make: "Ford", model: "Explorer", ...suv3 },
+  { make: "Honda", model: "Pilot", ...suv3, seats: 7 },
+  { make: "Chevrolet", model: "Traverse", ...suv3, seats: 7 },
+  { make: "Chevrolet", model: "Tahoe", ...suv3, seats: 7, cargoLengthIn: 95, cargoWidthIn: 48, cargoHeightIn: 37, payloadLbs: 1600 },
+  { make: "Chevrolet", model: "Suburban", ...suv3, seats: 7, cargoLengthIn: 110, cargoWidthIn: 48, cargoHeightIn: 37, payloadLbs: 1600 },
+  { make: "Ford", model: "Expedition", ...suv3, seats: 7, cargoLengthIn: 95, cargoWidthIn: 48, cargoHeightIn: 37, payloadLbs: 1600 },
+  // Minivans
+  { make: "Honda", model: "Odyssey", ...minivan },
+  { make: "Toyota", model: "Sienna", ...minivan, payloadLbs: 1200 },
+  { make: "Chrysler", model: "Pacifica", ...minivan },
+  { make: "Kia", model: "Carnival", ...minivan },
+  // Pickups (open bed)
+  { make: "Ford", model: "F-150", variant: "5.5 ft bed", ...pickup(67, 50, 21, 1700) },
+  { make: "Ford", model: "F-150", variant: "6.5 ft bed", ...pickup(78, 50, 21, 1800) },
+  { make: "Chevrolet", model: "Silverado 1500", variant: "5.8 ft bed", ...pickup(70, 50, 22, 1700) },
+  { make: "Chevrolet", model: "Silverado 1500", variant: "6.6 ft bed", ...pickup(79, 50, 22, 1800) },
+  { make: "GMC", model: "Sierra 1500", variant: "5.8 ft bed", ...pickup(70, 50, 22, 1700) },
+  { make: "Ram", model: "1500", variant: "5.7 ft bed", ...pickup(67, 51, 20, 1700) },
+  { make: "Ram", model: "1500", variant: "6.4 ft bed", ...pickup(76, 51, 20, 1800) },
+  { make: "Toyota", model: "Tundra", variant: "5.5 ft bed", ...pickup(66, 49, 21, 1600) },
+  { make: "Toyota", model: "Tacoma", variant: "5 ft bed", ...pickup(60, 41, 19, 1200) },
+  { make: "Toyota", model: "Tacoma", variant: "6 ft bed", ...pickup(73, 41, 19, 1200) },
+  { make: "Nissan", model: "Frontier", variant: "5 ft bed", ...pickup(60, 42, 18, 1200) },
+  // Cargo vans
+  { make: "Ford", model: "Transit", variant: "130 WB low roof", ...van(112, 51, 56, 3000) },
+  { make: "Ford", model: "Transit", variant: "148 WB medium roof", ...van(143, 51, 72, 3200) },
+  { make: "Ram", model: "ProMaster", variant: "136 WB low roof", ...van(120, 60, 65, 3600) },
+  { make: "Ram", model: "ProMaster", variant: "159 WB high roof", ...van(146, 60, 76, 3600) },
+  { make: "Mercedes-Benz", model: "Sprinter", variant: "144 WB high roof", ...van(128, 53, 79, 3500) },
+  { make: "Chevrolet", model: "Express 2500", variant: "Cargo", ...van(146, 52, 53, 3200) },
+  { make: "Ford", model: "Transit Connect", variant: "Cargo", ...van(87, 48, 52, 1500) },
+  { make: "Ram", model: "ProMaster City", variant: "Cargo", ...van(87, 48, 52, 1800) },
+  { make: "Nissan", model: "NV200", variant: "Cargo", ...van(82, 48, 53, 1480) },
+  // Passenger vans
+  { make: "Ford", model: "Transit", variant: "Passenger 15", category: "passenger_van", seats: 14, cargoLengthIn: 30, cargoWidthIn: 51, cargoHeightIn: 56, payloadLbs: 3500, note: "Space behind last row" },
+  // Box trucks
+  { make: "Box truck", model: "12 ft", category: "box_truck", seats: 2, cargoLengthIn: 144, cargoWidthIn: 86, cargoHeightIn: 84, payloadLbs: 3000 },
+  { make: "Box truck", model: "16 ft", category: "box_truck", seats: 2, cargoLengthIn: 192, cargoWidthIn: 92, cargoHeightIn: 90, payloadLbs: 5000 },
+  { make: "Box truck", model: "20 ft", category: "box_truck", seats: 2, cargoLengthIn: 240, cargoWidthIn: 96, cargoHeightIn: 96, payloadLbs: 7000 },
+  { make: "Box truck", model: "26 ft", category: "box_truck", seats: 2, cargoLengthIn: 312, cargoWidthIn: 96, cargoHeightIn: 96, payloadLbs: 10000 },
+  // Trailers (towed)
+  { make: "Trailer", model: "Enclosed 6x12", category: "trailer", seats: 0, cargoLengthIn: 144, cargoWidthIn: 72, cargoHeightIn: 72, payloadLbs: 2000 },
+  { make: "Trailer", model: "Enclosed 7x14", category: "trailer", seats: 0, cargoLengthIn: 168, cargoWidthIn: 84, cargoHeightIn: 78, payloadLbs: 4500 },
+  { make: "Trailer", model: "Flatbed / car hauler 18 ft", category: "trailer", seats: 0, cargoLengthIn: 216, cargoWidthIn: 83, cargoHeightIn: null, openTop: true, payloadLbs: 7000 },
+  ...MORE,
+]

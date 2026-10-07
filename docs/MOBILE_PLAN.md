@@ -29,7 +29,7 @@ El objetivo funcional sigue siendo tres experiencias: pasajero, chofer y adminis
 
 ### Ubicación y tiempo real
 
-- Guardar la posición actual y las posiciones históricas en PostgreSQL, asociadas al chofer y al viaje, con índices y límites de frecuencia/precisión. Propuesta inicial de retención del historial: **30 días**, pendiente de aprobación y revisión legal; eliminarlo automáticamente mediante una tarea programada.
+- Guardar la posición actual y las posiciones históricas en PostgreSQL, asociadas al chofer y al viaje, con índices y límites de frecuencia/precisión. Retención inicial aprobada: **30 días**, sujeta a revisión legal; eliminarla automáticamente mediante una tarea programada.
 - Usar **Ably** como primera opción: servicio administrado, adecuado para canales privados y evita operar WebSockets en Hostinger. Next.js autorizará canales y emitirá credenciales temporales; la clave privada solo vivirá en variables de entorno del servidor.
 - Mantener polling autenticado como respaldo si la conexión en vivo cae o no está disponible. El cliente mostrará cuándo la ubicación está desactualizada.
 - Alternativas consideradas: Pusher también es administrado; Supabase Realtime incorporaría otra plataforma además de Neon; Socket.IO en otro servidor exige más operación y disponibilidad. Si se prefiere otra opción, se decidirá antes de implementarla.
@@ -44,7 +44,7 @@ El objetivo funcional sigue siendo tres experiencias: pasajero, chofer y adminis
 
 Cada fase termina con validación y un PR independiente. No se iniciará la siguiente hasta que la anterior esté revisada.
 
-### Fase 0 — Plan y decisiones (este PR)
+### Fase 0 — Plan y decisiones (PR de planificación)
 
 - Entregar esta auditoría, la arquitectura, las fases y las tareas del propietario.
 - **Sin cambios de código ni cambios en Neon/Hostinger.**

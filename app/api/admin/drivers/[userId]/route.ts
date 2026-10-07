@@ -17,8 +17,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ userId
   })
   // Keep the user's role in sync (never downgrade an admin)
   const target = await db.user.findUnique({ where: { id: userId } })
-  if (target && target.role !== "admin") {
-    await db.user.update({ where: { id: userId }, data: { role: body.status === "approved" ? "driver" : "user" } })
+  const nextRole = target && target.role !== "admin" ? body.status === "approved" ? "driver" : "user" : target?.role
+  if (target && nextRole && nextRole !== target.role) {
+    await db.$transaction([
+      db.user.update({ where: { id: userId }, data: { role: nextRole } }),
+      db.mobileSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ])
   }
   return NextResponse.json(profile)
 }

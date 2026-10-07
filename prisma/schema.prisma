@@ -147,6 +147,8 @@ model User {
   reviewsReceived  Review[]       @relation("ReviewSubject")
   adminActions     AdminLog[]
   alerts           TripAlert[]
+  mobileSessions   MobileSession[]
+  driverLocations  DriverLocation[]
 }
 
 model Account {
@@ -275,6 +277,7 @@ model Deal {
   requesterId     String
   requester       User         @relation("DealRequester", fields: [requesterId], references: [id])
   status          DealStatus   @default(negotiating)
+  operationalStatus String     @default("accepted")
   exclusivity     Exclusivity  @default(exclusive)
   finalPrice      Float?
   platformFeeRate Float        @default(0.10)
@@ -285,6 +288,53 @@ model Deal {
   completion      CompletionConfirmation?
   cancellation    Cancellation?
   reviews         Review[]
+  driverLocations DriverLocation[]
+}
+
+model MobileAuthRequest {
+  id              String    @id @default(cuid())
+  codeChallenge   String
+  email           String?
+  loginAttempts   Int       @default(0)
+  codeHash        String?
+  codeExpiresAt   DateTime?
+  codeUsedAt      DateTime?
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([email, createdAt])
+}
+
+model MobileSession {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  role       UserRole
+  expiresAt  DateTime
+  lastUsedAt DateTime  @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model DriverLocation {
+  id         String   @id @default(cuid())
+  dealId     String
+  deal       Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  driverId   String
+  driver     User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  latitude   Float
+  longitude  Float
+  accuracyM  Float?
+  createdAt  DateTime @default(now())
+
+  @@index([dealId, createdAt])
+  @@index([driverId, createdAt])
+  @@index([createdAt])
 }
 
 model Proposal {

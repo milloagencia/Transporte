@@ -25,10 +25,23 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     case "set_status": {
       if (protectedTarget) return NextResponse.json({ error: "cannot_modify_admin" }, { status: 400 })
       if (!STATUSES.includes(body.status)) return NextResponse.json({ error: "invalid_option" }, { status: 400 })
-      await db.user.update({ where: { id }, data: { status: body.status, statusReason: reason, statusChangedAt: new Date() } })
-      if (body.status === "suspended") await db.session.deleteMany({ where: { userId: id } })
+      await db.$transaction([
+        db.user.update({ where: { id }, data: { status: body.status, statusReason: reason, statusChangedAt: new Date() } }),
+        ...(body.status === "suspended" ? [
+          db.session.deleteMany({ where: { userId: id } }),
+          db.mobileSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } }),
+        ] : []),
+      ])
       await logAdmin(me.id, `user.status.${body.status}`, "user", id, reason)
       return NextResponse.json({ ok: true })
+    }
+    case "revoke_mobile_sessions": {
+      const result = await db.mobileSession.updateMany({
+        where: { userId: id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      })
+      await logAdmin(me.id, "user.mobile_sessions.revoke", "user", id, reason)
+      return NextResponse.json({ ok: true, revoked: result.count })
     }
     case "delete": {
       if (protectedTarget) return NextResponse.json({ error: "cannot_modify_admin" }, { status: 400 })
@@ -41,6 +54,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         }),
         db.vehicle.updateMany({ where: { ownerId: id }, data: { active: false } }),
         db.session.deleteMany({ where: { userId: id } }),
+        db.mobileSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } }),
         db.account.deleteMany({ where: { userId: id } }),
         db.user.update({
           where: { id },
@@ -58,14 +72,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
     case "verify_driver": {
       if (!VERIFICATION.includes(body.status)) return NextResponse.json({ error: "invalid_option" }, { status: 400 })
-      await db.driverProfile.upsert({
-        where: { userId: id },
-        update: { verificationStatus: body.status, adminNote: reason },
-        create: { userId: id, verificationStatus: body.status, adminNote: reason },
+      const nextRole = user.role === "admin" ? "admin" : body.status === "approved" ? "driver" : "user"
+      await db.$transaction(async (tx) => {
+        await tx.driverProfile.upsert({
+          where: { userId: id },
+          update: { verificationStatus: body.status, adminNote: reason },
+          create: { userId: id, verificationStatus: body.status, adminNote: reason },
+        })
+        if (nextRole !== user.role) {
+          await tx.user.update({ where: { id }, data: { role: nextRole } })
+          await tx.mobileSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } })
+        }
       })
-      if (user.role !== "admin") {
-        await db.user.update({ where: { id }, data: { role: body.status === "approved" ? "driver" : "user" } })
-      }
       await logAdmin(me.id, `driver.${body.status}`, "user", id, reason)
       return NextResponse.json({ ok: true })
     }

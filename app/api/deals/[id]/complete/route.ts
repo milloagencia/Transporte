@@ -24,7 +24,7 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
 
   if (bothConfirmed) {
     await db.$transaction([
-      db.deal.update({ where: { id: dealId }, data: { status: "completed" } }),
+      db.deal.update({ where: { id: dealId }, data: { status: "completed", operationalStatus: "completed" } }),
       db.payment.update({ where: { dealId }, data: { status: "simulated_released" } }),
     ])
   }

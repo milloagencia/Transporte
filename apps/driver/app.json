@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Collage Driver",
+    "slug": "collage-driver",
+    "scheme": "collage-driver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Compartimos tu ubicación con el pasajero asignado mientras sigues un viaje activo."
+      }
+    },
+    "android": {
+      "blockedPermissions": ["ACCESS_BACKGROUND_LOCATION"],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "locationWhenInUsePermission": "Compartimos tu ubicación con el pasajero asignado mientras sigues un viaje activo.",
+          "motionUsagePermission": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

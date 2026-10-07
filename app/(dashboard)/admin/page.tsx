@@ -7,6 +7,7 @@ import AdminActions from "./AdminActions"
 import DemoActions from "./DemoActions"
 import Link from "next/link"
 import { formatDate } from "@/lib/format"
+import LiveTrips from "./LiveTrips"
 
 export default async function AdminPage() {
   const session = await auth()
@@ -52,6 +53,7 @@ export default async function AdminPage() {
           </Card>
         ))}
       </div>
+      <LiveTrips />
       <Card>
         <CardHeader><CardTitle>Acuerdos recientes (todos)</CardTitle></CardHeader>
         <CardContent>

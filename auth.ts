@@ -32,7 +32,12 @@ const emailProvider = Nodemailer({
 
 async function promoteIfAdmin(userId?: string | null, email?: string | null) {
   if (!userId || !email || !ADMIN_EMAILS.includes(email.toLowerCase())) return
-  await db.user.update({ where: { id: userId }, data: { role: "admin" } })
+  await db.$transaction(async (tx) => {
+    const changed = await tx.user.updateMany({ where: { id: userId, role: { not: "admin" } }, data: { role: "admin" } })
+    if (changed.count) {
+      await tx.mobileSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } })
+    }
+  })
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

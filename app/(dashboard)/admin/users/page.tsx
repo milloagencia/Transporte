@@ -123,6 +123,9 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                   </td>
                   <td className="whitespace-nowrap px-2 py-2 text-xs text-slate-600">{formatDate(u.createdAt)}</td>
                   <td className="px-2 py-2">
+                    <div className="mb-1">
+                      <AdminAction url={url} body={{ action: "revoke_mobile_sessions" }} label="Cerrar sesiones móviles" tone="warning" confirm />
+                    </div>
                     {u.role !== "admin" && u.status !== "deleted" && (
                       <div className="flex flex-wrap gap-1">
                         {u.status !== "active" && <AdminAction url={url} body={{ action: "set_status", status: "active" }} label="Reactivar" tone="success" />}

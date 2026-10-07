@@ -53,13 +53,22 @@ npm run build             # genera Prisma, aplica el esquema, carga el catálogo
 npm run dev               # http://localhost:3000
 ```
 
-Variables principales: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_FROM`, `ADMIN_EMAIL`, `DEMO_DATA` (`on` carga datos de ejemplo). **Nunca** subas valores reales al repositorio.
+Apps Expo (después de instalar desde la raíz):
+
+```bash
+cd apps/passenger && npx expo start
+# o, en otra terminal:
+cd apps/driver && npx expo start
+```
+
+Variables principales: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_FROM`, `ADMIN_EMAIL`, `ABLY_API_KEY` y `LOCATION_CLEANUP_SECRET`. En producción, el seed automático nunca crea ni borra datos demo. **Nunca** subas valores reales al repositorio.
 
 ## Documentación
 
 - [`docs/HANDOFF.md`](docs/HANDOFF.md) — estado completo del proyecto, plataformas, cómo se despliega, mapa del código, lecciones aprendidas y pendientes.
 - [`docs/PRD.md`](docs/PRD.md) — documento de producto original.
 - [`docs/SETUP.md`](docs/SETUP.md) — instrucciones de instalación iniciales.
+- [`docs/MOBILE_PLAN.md`](docs/MOBILE_PLAN.md) — fases, decisiones y estado de apps móviles/tiempo real.
 
 ## Pendientes principales
 

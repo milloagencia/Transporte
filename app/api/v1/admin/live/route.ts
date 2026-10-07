@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const trips = await db.deal.findMany({
     where: {
       status: "paid_escrow",
-      operationalStatus: { in: ["on_the_way", "arrived", "in_trip"] },
+      operationalStatus: { in: ["accepted", "on_the_way", "arrived", "in_trip"] },
     },
     select: {
       id: true,
@@ -26,6 +26,7 @@ export async function GET(request: Request) {
       },
     },
     orderBy: { updatedAt: "desc" },
+    take: 100,
   })
   return NextResponse.json(trips, { headers: { "Cache-Control": "no-store" } })
 }

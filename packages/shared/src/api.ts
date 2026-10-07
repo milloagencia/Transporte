@@ -17,14 +17,19 @@ export async function getAccessToken() {
   return SecureStore.getItemAsync(ACCESS_TOKEN_KEY)
 }
 
-async function apiRequest<T>(path: string, body?: unknown, authenticated = false): Promise<T> {
+async function apiRequest<T>(
+  path: string,
+  body?: unknown,
+  authenticated = false,
+  method?: "GET" | "POST" | "PATCH",
+): Promise<T> {
   const headers = new Headers({ "Content-Type": "application/json" })
   if (authenticated) {
     const token = await getAccessToken()
     if (token) headers.set("Authorization", "Bearer".concat(" ", token))
   }
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: body === undefined ? "GET" : "POST",
+    method: method ?? (body === undefined ? "GET" : "POST"),
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   })
@@ -91,4 +96,8 @@ export async function signOutMobile() {
 
 export async function mobileApiRequest<T>(path: string, body?: unknown) {
   return apiRequest<T>(path, body, true)
+}
+
+export async function mobileApiPatch<T>(path: string, body: unknown) {
+  return apiRequest<T>(path, body, true, "PATCH")
 }

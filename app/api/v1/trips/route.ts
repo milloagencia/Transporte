@@ -17,6 +17,7 @@ export async function GET(request: Request) {
       id: true,
       operationalStatus: true,
       driverId: true,
+      requesterId: true,
       driver: { select: { id: true, name: true } },
       requester: { select: { id: true, name: true } },
       driverLocations: {
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
       },
     },
     orderBy: { updatedAt: "desc" },
+    take: 50,
   })
   return NextResponse.json(trips, { headers: { "Cache-Control": "no-store" } })
 }

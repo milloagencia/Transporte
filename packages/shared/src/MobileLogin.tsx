@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import type { ReactNode } from "react"
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native"
 import {
   clearAccessToken,
@@ -42,7 +43,15 @@ const COPY = {
   },
 }
 
-export function MobileLogin({ language = "es" }: { language?: Language }) {
+export function MobileLogin({
+  language = "es",
+  authenticatedContent,
+  onLanguageChange,
+}: {
+  language?: Language
+  authenticatedContent?: (user: User, language: Language) => ReactNode
+  onLanguageChange?: (language: Language) => void
+}) {
   const text = COPY[language]
   const [email, setEmail] = useState("")
   const [code, setCode] = useState("")
@@ -114,11 +123,22 @@ export function MobileLogin({ language = "es" }: { language?: Language }) {
       <Text style={styles.title}>{text.title}</Text>
       {user ? (
         <>
-          <Text style={styles.subtitle}>{text.loggedIn}</Text>
-          <Text>{user.role}</Text>
-          <Pressable disabled={busy} onPress={logout} style={styles.button}>
-            <Text style={styles.buttonText}>{text.logout}</Text>
-          </Pressable>
+          {authenticatedContent ? (
+            <>
+              {authenticatedContent(user, language)}
+              <Pressable disabled={busy} onPress={logout} style={styles.button}>
+                <Text style={styles.buttonText}>{text.logout}</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.subtitle}>{text.loggedIn}</Text>
+              <Text>{user.role}</Text>
+              <Pressable disabled={busy} onPress={logout} style={styles.button}>
+                <Text style={styles.buttonText}>{text.logout}</Text>
+              </Pressable>
+            </>
+          )}
         </>
       ) : (
         <>
@@ -156,6 +176,15 @@ export function MobileLogin({ language = "es" }: { language?: Language }) {
           )}
         </>
       )}
+      {onLanguageChange && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={language === "es" ? "Switch language to English" : "Cambiar idioma a español"}
+          onPress={() => onLanguageChange(language === "es" ? "en" : "es")}
+        >
+          <Text style={styles.language}>{language === "es" ? "English" : "Español"}</Text>
+        </Pressable>
+      )}
       {!!message && <Text accessibilityRole="alert" style={styles.message}>{message}</Text>}
     </View>
   )
@@ -169,4 +198,5 @@ const styles = StyleSheet.create({
   button: { alignItems: "center", justifyContent: "center", minHeight: 48, borderRadius: 8, backgroundColor: "#2563eb", padding: 12 },
   buttonText: { color: "white", fontSize: 16, fontWeight: "600" },
   message: { color: "#334155", lineHeight: 22 },
+  language: { color: "#1d4ed8", fontWeight: "600", textAlign: "center" },
 })

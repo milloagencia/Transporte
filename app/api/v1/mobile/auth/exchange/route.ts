@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import {
   hashSecret,
-  MOBILE_CODE_MINUTES,
   MOBILE_SESSION_DAYS,
   randomSecret,
   requestIp,

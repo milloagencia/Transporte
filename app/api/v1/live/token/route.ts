@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import type { capabilityOp } from "ably"
 import { db } from "@/lib/db"
 import { getRequestUser, unauthorized } from "@/lib/mobile-auth"
 import { createRealtimeToken, realtimeConfigured } from "@/lib/live-updates"
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ enabled: false }, { headers: { "Cache-Control": "no-store" } })
   }
 
-  const capability: Record<string, string[]> = {}
+  const capability: Record<string, capabilityOp[]> = {}
   if (me.role === "admin") {
     capability["admin:live"] = ["subscribe"]
   } else {

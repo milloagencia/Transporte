@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { MOBILE_CODE_MINUTES, randomSecret, hashSecret } from "@/lib/mobile-auth"

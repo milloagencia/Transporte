@@ -47,6 +47,7 @@ Los **valores secretos solo están en Hostinger** (nunca en el código ni en est
 | `ABLY_API_KEY` | (opcional) Clave privada de Ably para eventos de ubicación; si falta, los clientes usan polling |
 | `LOCATION_CLEANUP_SECRET` | Secreto del cron diario que elimina historial de ubicación de más de 30 días |
 | `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | (opcional, fase posterior) Token público restringido por dominio para el mapa web |
+| `EXPO_PUBLIC_API_URL` | Dirección de la API para las apps; pública, por defecto `https://app.collagetaxi.com` |
 | (opcional) `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | Verificación de Search Console / Bing |
 
 Guardar variables en Hostinger requiere pulsar **"Apply changes"** (o "Save and redeploy"); eso vuelve a construir la app.
@@ -71,6 +72,8 @@ Detalles de Hostinger: Node 20, Next.js detectado automáticamente, salida `.nex
 
 Desarrollo local: `docker-compose up -d` (Postgres) + `.env` (ver `.env.example`) + `npm run dev`.
 Sin `EMAIL_*` el magic link se imprime en la consola.
+
+Los workspaces Expo viven en `apps/passenger` y `apps/driver`; el cliente API y el almacenamiento protegido (`expo-secure-store`) están en `packages/shared`. Después de `npm install` en la raíz, inicia cualquiera con `cd apps/passenger && npx expo start` o `cd apps/driver && npx expo start`. El login móvil usa un código que se copia desde la página de confirmación; las apps guardan el token en el almacenamiento seguro del dispositivo.
 
 ---
 
@@ -198,6 +201,10 @@ Sin `EMAIL_*` el magic link se imprime en la consola.
 ## 6. Mapa del código
 
 ```
+apps/
+  passenger/  app Expo de cliente/pasajero
+  driver/     app Expo de chofer
+packages/shared/  login PKCE, cliente API y almacenamiento seguro Expo
 app/
   page.tsx, es/, nebraska/, services/, es/servicios/   páginas públicas (SEO)
   robots.ts, sitemap.ts, manifest.ts, opengraph-image.tsx, icon.svg
@@ -205,16 +212,18 @@ app/
   (dashboard)/  offers, requests, deals, vehicles, alerts, profile, users/[id], dashboard
   (dashboard)/admin/  layout (pestañas + AutoRefresh), users, trips, deals, reviews, log, AdminAction.tsx
   api/  offers, requests (+updates), deals (+proposals, accept, pay, complete, cancel, review),
+        v1/mobile/auth (request, login, exchange, logout), v1/trips (location, status), v1/admin/live, v1/live/token,
         vehicles, vehicle-models, driver, profile, alerts (+[id], unsubscribe), admin/* (users, offers, requests, deals, reviews, demo, config, drivers)
 components/  board/ (tablas), public/ (landing, ciudad, servicio, shell, json-ld), formularios, stars, alert-button
 lib/  validation, trip-input, matching, geo, ratings, alerts, mail, guards, rate-limit, format, seo-content, seo-meta, board-rows
 prisma/  schema.prisma, seed.mjs, vehicle-catalog.mjs, demo-data.mjs
 messages/  es.json, en.json
-docs/  PRD.md, SETUP.md, HANDOFF.md (este archivo)
+docs/  PRD.md, SETUP.md, HANDOFF.md (este archivo), MOBILE_PLAN.md
 ```
 
 Modelos Prisma: User, Account, Session, VerificationToken, DriverProfile, Vehicle, VehicleModel, TripOffer, TripRequest,
-Deal, Proposal, Payment, CompletionConfirmation, Cancellation, WalletCredit, PlatformConfig, Review, AdminLog, TripAlert.
+Deal, Proposal, Payment, CompletionConfirmation, Cancellation, WalletCredit, PlatformConfig, Review, AdminLog, TripAlert,
+MobileAuthRequest, MobileSession, DriverLocation.
 
 ---
 

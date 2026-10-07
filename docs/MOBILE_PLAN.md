@@ -1,6 +1,6 @@
 # Plan de apps móviles y seguimiento en vivo
 
-**Estado:** propuesta para aprobación. No empezaré a programar hasta que Manuel la apruebe. Cada fase de implementación tendrá su propio PR.
+**Estado:** aprobada por el propietario el 7 de octubre de 2026. Cada fase de implementación tendrá su propio PR.
 
 ## 1. Auditoría del repositorio
 
@@ -80,15 +80,17 @@ Cada fase termina con validación y un PR independiente. No se iniciará la sigu
 
 ## 4. Qué tendrás que hacer tú
 
-**Para aprobar el plan:** responde si lo apruebas y confirma (o cambia) estas opciones:
+**Decisiones aprobadas:**
 
 1. Mantener la web en la raíz durante las primeras fases.
 2. Usar Ably como servicio en tiempo real.
 3. Evaluar Mapbox primero para el mapa web y comenzar con ETA de rutas solo después de comprobar el costo.
 4. Retener el historial de ubicación 30 días inicialmente.
 
-**Cuando corresponda, no ahora:** crear/configurar una cuenta de Ably y una de Mapbox; guardar sus claves solo en las variables del servidor y proporcionar los tokens públicos restringidos que requiera el mapa. Para distribución móvil se necesitará una cuenta Expo/EAS, acceso a la cuenta de Apple Developer existente y crear una cuenta de Google Play. No compartas claves ni contraseñas por el chat.
+Además, el propietario aprobó el acceso móvil por enlace mágico, confirmación segura, código PKCE de un solo uso válido 10 minutos y token almacenado como hash en Neon. La sesión móvil tiene expiración móvil de 30 días desde el último uso y se guarda en el teléfono con Expo SecureStore.
+
+**Cuando corresponda, no ahora:** crear/configurar una cuenta de Ably y una de Mapbox; guardar sus claves solo en las variables de servidor y restringir los tokens públicos que requiera el mapa. Para distribución móvil se necesitará una cuenta Expo/EAS, acceso a la cuenta de Apple Developer existente y crear una cuenta de Google Play. No compartas claves ni contraseñas por el chat.
 
 Antes de un lanzamiento público también habrá que revisar con asesoría legal el consentimiento y privacidad de ubicación en Nebraska, la actividad regulada, seguros, términos y retención de datos, como ya advierte el handoff.
 
-**Aún no ejecutes comandos ni cambies configuración.** Tras aprobar, prepararé la Fase 1 y, al completarla, compartiré su PR para revisión.
+La Fase 1 está en implementación en el PR de esta fase. No se desplegará en Hostinger ni se modificarán las variables de producción desde esta sesión.

@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "driver",
-    "slug": "driver",
+    "name": "Collage Driver",
+    "slug": "collage-driver",
+    "scheme": "collage-driver",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

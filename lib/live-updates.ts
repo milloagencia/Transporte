@@ -1,4 +1,4 @@
-import { Rest } from "ably"
+import { Rest, type capabilityOp } from "ably"
 
 let ably: Rest | undefined
 
@@ -23,7 +23,7 @@ export async function publishLocationUpdate(dealId: string, payload: Record<stri
   }
 }
 
-export async function createRealtimeToken(userId: string, capability: Record<string, string[]>) {
+export async function createRealtimeToken(userId: string, capability: Record<string, capabilityOp[]>) {
   const key = process.env.ABLY_API_KEY
   if (!key) return null
   try {

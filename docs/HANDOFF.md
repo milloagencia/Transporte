@@ -47,10 +47,12 @@ Los **valores secretos solo están en Hostinger** (nunca en el código ni en est
 | `ABLY_API_KEY` | (opcional) Clave privada de Ably para eventos de ubicación; si falta, los clientes usan polling |
 | `LOCATION_CLEANUP_SECRET` | Secreto del cron diario que elimina historial de ubicación de más de 30 días |
 | `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | (opcional) Token público `pk.*` de Mapbox, restringido a los dominios permitidos de la app; si falta o no funciona, Admin muestra la lista sin mapa. No habilita rutas ni ETA. |
-| `EXPO_PUBLIC_API_URL` | Dirección pública de la API para Expo Go; usa la IP local del PC en la prueba local y producción solo cuando esta versión se haya desplegado |
+| `EXPO_PUBLIC_API_URL` | Dirección pública de la API que se establece en la terminal antes de iniciar Expo; para esta prueba: `https://app.collagetaxi.com`. No hace falta agregarla a Hostinger. |
 | (opcional) `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | Verificación de Search Console / Bing |
 
 Guardar variables en Hostinger requiere pulsar **"Apply changes"** (o "Save and redeploy"); eso vuelve a construir la app.
+
+**Para la prueba móvil:** no reemplaces las variables existentes `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `ADMIN_EMAIL` ni `EMAIL_*`; comprueba que ya estén configuradas. Agrega `LOCATION_CLEANUP_SECRET` si aún falta (lo necesita el cron para hacer cumplir los 30 días). `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` es opcional; `ABLY_API_KEY` también es opcional y no se necesita para el polling de esta prueba. `EXPO_PUBLIC_API_URL` se exporta en la Terminal del iMac, no se añade a Hostinger.
 
 ---
 
@@ -78,52 +80,71 @@ Detalles de Hostinger: Node 20, Next.js detectado automáticamente, salida `.nex
 
 Desarrollo local de la web: `docker compose up -d postgres`, configurar `.env` (ver `.env.example`) y ejecutar `npm run dev`. Sin `EMAIL_*`, el enlace mágico se imprime en la consola.
 
-### Probar GPS y mapas con Expo Go (solo primer plano)
+### Preparar cuentas y viaje de prueba en la web de producción
 
-La versión del PR aún no está desplegada: **no conectes la app de prueba a la web de producción**. Usa una base de datos local desechable; no uses la URL de Neon de producción.
+Hazlo **después** de que el propietario revise y fusione el PR y despliegue la versión actualizada. No pruebes las apps contra una web que todavía no contiene `/api/v1/mobile/*` y las rutas de seguimiento. El propietario indica que ya creó una rama de respaldo de Neon y conserva el despliegue anterior de Hostinger. Mantén las pruebas controladas, sin pasajero físico ni transporte real: el pago es simulado y no cobra dinero.
 
-1. Instala Node.js 20 o posterior, Docker Desktop y Expo Go en ambos teléfonos. Conecta el PC y los teléfonos a la misma red Wi-Fi.
-2. En el repositorio, inicia PostgreSQL local con `docker compose up -d postgres`.
-3. Copia `.env.example` a `.env` y cambia, como mínimo:
-   ```dotenv
-   DATABASE_URL="postgresql://<usuario-local>:<contraseña-local>@localhost:5432/collage_transport?schema=public"
-   AUTH_SECRET="un-secreto-local-generado-con-openssl"
-   AUTH_URL="http://localhost:3000"
-   ADMIN_EMAIL="tu-correo-para-probar-admin@example.com"
-   DEMO_DATA="on"
-   ```
-   Sustituye los marcadores de la URL por el usuario/clave local de `docker-compose.yml`; genera `AUTH_SECRET` con `openssl rand -base64 32`. Deja `ABLY_API_KEY` y `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` vacíos; no hacen falta para probar el respaldo por polling/lista.
-4. Inicializa únicamente la base local y crea los datos de prueba:
+1. Abre `https://app.collagetaxi.com` y crea/inicia sesión con `collagetropical+chofer@gmail.com`. Completa el onboarding como persona que ofrece transporte. Gmail entrega los mensajes de las direcciones con `+chofer` y `+pasajero` en el buzón base `collagetropical@gmail.com`.
+2. En la cuenta de chofer, ve a **Perfil**. Envía la solicitud de verificación y agrega un vehículo desde **Vehículos**. El formulario de verificación pide licencia, seguro e inspección; usa solo información correcta y no publiques esos datos en chats o capturas.
+3. Cierra la sesión web del chofer e inicia sesión con la cuenta administradora (`ADMIN_EMAIL`, actualmente `collagetropical@gmail.com`). Abre **Admin → Usuarios**, busca `collagetropical+chofer@gmail.com` y pulsa **Aprobar** junto a su estado de verificación. La cuenta adquiere el rol de chofer aprobado.
+4. Vuelve a iniciar sesión como chofer. Abre **Ofertas → Publicar oferta**. Selecciona el vehículo; elige una ruta de prueba, por ejemplo Omaha → Lincoln, número de asientos, precio bajo, y un horario futuro que puedas probar. Publica la oferta.
+5. Inicia sesión como pasajero con `collagetropical+pasajero@gmail.com`, completa el onboarding como persona que necesita transporte y abre **Ofertas**. Elige la oferta de prueba y pulsa **Start Deal / Iniciar acuerdo**.
+6. En el acuerdo, como pasajero, envía una propuesta de precio. Cambia a la cuenta del chofer, abre **Acuerdos**, entra al acuerdo y pulsa **Aceptar** en la propuesta pendiente.
+7. Vuelve a la cuenta pasajero: el estado debe indicar que espera pago. Pulsa **Pay (Simulated) / Pagar (simulado)**. No se cobra tarjeta ni se transfiere dinero. El acuerdo pasa a `paid_escrow`, que habilita los controles de estado y GPS móvil.
+8. Mantén a mano la URL o el acuerdo para seleccionar el viaje correcto en las apps. Para probar GPS, estaciona en un lugar seguro, permite ubicación “al usar la app” en el teléfono del chofer y comparte la ubicación solo durante la prueba.
+
+### Probar las apps en iMac/macOS con Expo Go (solo primer plano)
+
+Haz estos pasos después de que el backend actualizado esté disponible en `https://app.collagetaxi.com`. Expo Go transporta el código de desarrollo por el túnel; la API de la app sigue usando HTTPS y producción.
+
+1. Instala **Expo Go** desde App Store y/o Google Play en los teléfonos de prueba. En el iMac abre **Terminal** y comprueba las herramientas:
    ```bash
-   npx prisma db push
-   node --env-file=.env prisma/seed.mjs
+   node -v
+   git --version
    ```
-   `DEMO_DATA=on` borra y vuelve a crear **solo** usuarios demo de esa base local. Nunca apuntes este comando a Neon de producción.
-5. Inicia la web/API para que los teléfonos puedan alcanzarla:
+   Se necesita Node.js 20 o posterior. Si no aparece Node, instala Homebrew desde `https://brew.sh` siguiendo su instrucción oficial y ejecuta:
    ```bash
-   npm run dev -- --hostname 0.0.0.0
+   brew install node@20
    ```
-   Mantén esta terminal abierta. En Windows, permite Node.js en la red privada si el firewall lo pregunta.
-6. Busca la IP local del PC (por ejemplo, `192.168.1.20`). En una segunda terminal, instala e inicia cada app desde su propia carpeta (no desde la raíz):
+   Cierra y vuelve a abrir Terminal y confirma `node -v`. Si `brew` no está disponible, instala la versión LTS de Node desde `https://nodejs.org`.
+2. Clona la rama principal ya actualizada después del merge:
    ```bash
-   cd apps/driver
+   mkdir -p ~/proyectos
+   cd ~/proyectos
+   git clone https://github.com/milloagencia/Transporte.git
+   cd Transporte
+   git checkout main
+   git pull origin main
+   ```
+   Si ya tienes el repositorio clonado en el iMac, entra a su carpeta y ejecuta `git checkout main` y `git pull origin main`.
+3. En la primera ventana de Terminal, instala y arranca la app de chofer (cada app instala sus dependencias desde su propia carpeta; no ejecutes `npm install` en la raíz):
+   ```bash
+   cd ~/proyectos/Transporte/apps/driver
    npm ci
+   export EXPO_PUBLIC_API_URL="https://app.collagetaxi.com"
+   npx expo start --tunnel
    ```
-   Linux/macOS:
+   Si Expo pregunta si instala el soporte de túnel, responde `y`. Espera a que aparezca el QR y ábrelo con Expo Go.
+4. Deja la ventana de chofer abierta. Abre una **segunda** ventana de Terminal y lanza pasajero:
    ```bash
-   EXPO_PUBLIC_API_URL=http://192.168.1.20:3000 npx expo start --lan
+   cd ~/proyectos/Transporte/apps/passenger
+   npm ci
+   export EXPO_PUBLIC_API_URL="https://app.collagetaxi.com"
+   npx expo start --tunnel
    ```
-   Windows PowerShell:
-   ```powershell
-   $env:EXPO_PUBLIC_API_URL="http://192.168.1.20:3000"
-   npx expo start --lan
-   ```
-   Escanea el QR con Expo Go. En otra terminal repite el procedimiento desde `apps/passenger` para el segundo teléfono. Sustituye la IP de ejemplo por la IP real del PC. Permite el puerto de Expo en el firewall si hace falta.
-7. Inicia sesión con el chofer local `express@demo.collagetaxi.com` en la app Chofer y con el pasajero `ana@demo.collagetaxi.com` en la app Pasajero. Como no configuraste correo SMTP, abre en el navegador del PC el enlace mágico que aparece en la terminal de Next.js, copia el código de la página segura y escríbelo en la app correspondiente.
-8. En la app Chofer elige el viaje con Ana, marca **Voy en camino** y pulsa **Compartir mi ubicación**. Acepta ubicación “mientras se usa la app”; mantén abierta esa pantalla. En la app Pasajero elige el viaje: el marcador se actualiza por polling. Admin `/admin` muestra la lista y la edad de ubicación; sin token Mapbox es normal que no se dibuje el mapa.
-9. Detén la prueba con **Dejar de compartir** y cierra Expo. Expo Go solo valida primer plano: no se implementa ni solicita ubicación en segundo plano en esta fase.
+   Escanea el segundo QR con el teléfono del pasajero. Si solo tienes un teléfono, detén la app Chofer con `Ctrl+C` antes de iniciar Pasajero; no podrás ver ambas apps a la vez en ese teléfono.
+5. En cada app inicia sesión con el correo correspondiente. Abre el enlace mágico que recibirás en el teléfono o en el correo del iMac; confirma en la página segura y escribe en la app el código de un solo uso. La sesión móvil se guarda en SecureStore.
+6. En Chofer selecciona el acuerdo pagado, marca **Voy en camino** y pulsa **Compartir mi ubicación**. Acepta el permiso mientras se usa la app y conserva Chofer abierto en primer plano. Pasajero selecciona el mismo viaje y verá estado/posición cuando consulte de nuevo (polling). En `/admin`, una sesión administradora ve la lista y, si está habilitado Mapbox, el mapa.
+7. Al terminar pulsa **Dejar de compartir** y cierra sesión si ya no vas a usar la app. No pongas la app en segundo plano: esa función no está incluida ni probada.
 
-La web del PR incluye el mapa visual Mapbox del Admin cuando se configura `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`. Para activarlo más adelante, crea tú un token público `pk.*` en Mapbox, limita sus URL permitidas a `https://app.collagetaxi.com/*` (y, para desarrollo, `http://localhost:3000/*`) y usa solo el permiso mínimo de lectura de estilos. Guárdalo en las variables de Hostinger y reconstruye; el token público aparecerá en el JavaScript del navegador por diseño. **No pegues aquí el token ni crees un token secreto `sk.*`.** Sin token, sin cuenta Mapbox o ante un error del mapa, la lista sigue funcionando. No hay ETA de carretera ni se contrató ningún servicio.
+**Alternativa breve para Windows PowerShell:** entra en el checkout actualizado (`C:\proyectos\transporte`), luego para Chofer ejecuta `cd C:\proyectos\transporte\apps\driver; npm ci; $env:EXPO_PUBLIC_API_URL="https://app.collagetaxi.com"; npx expo start --tunnel`. Para Pasajero repite en `C:\proyectos\transporte\apps\passenger`. Escanea cada QR con Expo Go.
+
+### Variables y servicios opcionales
+
+- Para que se borren automáticamente las ubicaciones tras 30 días, configura `LOCATION_CLEANUP_SECRET` en Hostinger y un cron diario que llame `GET https://app.collagetaxi.com/api/cron/cleanup-locations`. La tarea debe enviar el encabezado HTTP `Authorization` usando el esquema `Bearer`; el texto que sigue a `Bearer` debe ser exactamente el valor de `LOCATION_CLEANUP_SECRET`. No publiques ese valor. Confirma una respuesta HTTP 200. **Sin tarea programada, la retención de 30 días no se cumple automáticamente**; es una limitación de privacidad, no un requisito para iniciar sesión.
+- Mapbox web: opcional. Para dibujar el mapa de Admin crea un token público `pk.*` con permiso de estilos mínimo y restricción de URL al dominio de la app. Guárdalo como `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` y reconstruye. Sin token la lista sigue disponible. No crees ni uses un token privado `sk.*`.
+- Ably: opcional; no se necesita para esta prueba, que consulta el backend por polling. No crees cuenta ni pegues secretos para comenzar.
+- `EXPO_PUBLIC_API_URL` se configura en Terminal, **no en Hostinger**. No contiene secreto. No hay que añadir nuevos tokens o claves de móvil en las apps.
 
 ---
 

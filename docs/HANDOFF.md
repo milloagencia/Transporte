@@ -1,7 +1,7 @@
 # Collage Transport — Estado del proyecto y guía para continuar
 
 > Documento de traspaso (handoff). Escrito para que una persona o un modelo de IA pueda retomar el trabajo
-> sin el historial de la conversación. Última actualización: **2026-10-03**.
+> sin el historial de la conversación. Última actualización: **2026-10-07**.
 > Dueño del proyecto: **Manuel Millo** (no programa; hay que guiarlo paso a paso y en español).
 
 ---
@@ -46,8 +46,8 @@ Los **valores secretos solo están en Hostinger** (nunca en el código ni en est
 | `DEMO_DATA` | Solo fuera de producción: `on` crea demos y `off` los borra; en builds de producción se omiten ambos cambios |
 | `ABLY_API_KEY` | (opcional) Clave privada de Ably para eventos de ubicación; si falta, los clientes usan polling |
 | `LOCATION_CLEANUP_SECRET` | Secreto del cron diario que elimina historial de ubicación de más de 30 días |
-| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | (opcional, fase posterior) Token público restringido por dominio para el mapa web |
-| `EXPO_PUBLIC_API_URL` | Dirección de la API para las apps; pública, por defecto `https://app.collagetaxi.com` |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | (opcional) Token público `pk.*` de Mapbox, restringido a los dominios permitidos de la app; si falta o no funciona, Admin muestra la lista sin mapa. No habilita rutas ni ETA. |
+| `EXPO_PUBLIC_API_URL` | Dirección pública de la API para Expo Go; usa la IP local del PC en la prueba local y producción solo cuando esta versión se haya desplegado |
 | (opcional) `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | Verificación de Search Console / Bing |
 
 Guardar variables en Hostinger requiere pulsar **"Apply changes"** (o "Save and redeploy"); eso vuelve a construir la app.
@@ -58,22 +58,72 @@ Guardar variables en Hostinger requiere pulsar **"Apply changes"** (o "Save and 
 
 No hay CI ni conexión GitHub→Hostinger (no tenemos permiso de escritura en GitHub). El flujo usado:
 
-1. Trabajar en una copia local del repo (rama `fix/seguridad-mvp`, creada desde `origin/copilot/collage-transport-nebraska`).
-2. `git commit` y luego `git archive --format=zip -o collage-transport.zip HEAD`.
+1. Revisar y fusionar el PR aprobado; **no desplegar mientras el PR siga en borrador o sin aprobación**. Esta fase no se despliega automáticamente.
+2. Desde el repositorio actualizado y con la web en la raíz, generar un ZIP que excluye los proyectos móviles:
+   ```bash
+   git archive --format=zip --output=collage-transport-web.zip HEAD . ':(exclude)apps' ':(exclude)packages'
+   ```
+   La raíz no tiene `workspaces`; su `package-lock.json` contiene las dependencias web. Por eso `npm install` de Hostinger no instala Expo, React Native ni las dependencias móviles. Las apps tienen lockfiles separados en sus propias carpetas.
 3. En **hPanel → Websites → app.collagetaxi.com → Deployments → Redeploy → "Upload new files"**, subir el zip y pulsar **"Save and redeploy"**.
-4. Hostinger ejecuta: `npm install` (con `postinstall: prisma generate`) y `npm run build`, que es:
+4. Hostinger ejecuta `npm install` (con `postinstall: prisma generate`) y `npm run build`, que es:
    `prisma generate && prisma db push --skip-generate && node prisma/seed.mjs && next build`
    - `prisma db push` sincroniza el esquema con Neon (**no hay migraciones**; cambios destructivos pedirían confirmación y fallarían).
    - `prisma/seed.mjs` carga el catálogo de vehículos. `DEMO_DATA` solo modifica demos fuera de producción; en `NODE_ENV=production` el seed nunca crea ni borra demos.
 5. Revisar el log del deployment (debe terminar en "Deployment completed") y **Runtime logs** para errores en ejecución.
 
+Antes de cualquier futuro despliegue, confirmar respaldo de Neon y revisar el SQL Prisma: el contrato aprobado permite únicamente adiciones compatibles, sin borrar/renombrar objetos ni aceptar pérdida de datos.
+
 Detalles de Hostinger: Node 20, Next.js detectado automáticamente, salida `.next`, la app se "duerme" sin tráfico
 (primera visita lenta). El zip se sube desde el navegador (Claude in Chrome con `file_upload`).
 
-Desarrollo local: `docker-compose up -d` (Postgres) + `.env` (ver `.env.example`) + `npm run dev`.
-Sin `EMAIL_*` el magic link se imprime en la consola.
+Desarrollo local de la web: `docker compose up -d postgres`, configurar `.env` (ver `.env.example`) y ejecutar `npm run dev`. Sin `EMAIL_*`, el enlace mágico se imprime en la consola.
 
-Los workspaces Expo viven en `apps/passenger` y `apps/driver`; el cliente API y el almacenamiento protegido (`expo-secure-store`) están en `packages/shared`. Después de `npm install` en la raíz, inicia cualquiera con `cd apps/passenger && npx expo start` o `cd apps/driver && npx expo start`. El login móvil usa un código que se copia desde la página de confirmación; las apps guardan el token en el almacenamiento seguro del dispositivo.
+### Probar GPS y mapas con Expo Go (solo primer plano)
+
+La versión del PR aún no está desplegada: **no conectes la app de prueba a la web de producción**. Usa una base de datos local desechable; no uses la URL de Neon de producción.
+
+1. Instala Node.js 20 o posterior, Docker Desktop y Expo Go en ambos teléfonos. Conecta el PC y los teléfonos a la misma red Wi-Fi.
+2. En el repositorio, inicia PostgreSQL local con `docker compose up -d postgres`.
+3. Copia `.env.example` a `.env` y cambia, como mínimo:
+   ```dotenv
+   DATABASE_URL="postgresql://<usuario-local>:<contraseña-local>@localhost:5432/collage_transport?schema=public"
+   AUTH_SECRET="un-secreto-local-generado-con-openssl"
+   AUTH_URL="http://localhost:3000"
+   ADMIN_EMAIL="tu-correo-para-probar-admin@example.com"
+   DEMO_DATA="on"
+   ```
+   Sustituye los marcadores de la URL por el usuario/clave local de `docker-compose.yml`; genera `AUTH_SECRET` con `openssl rand -base64 32`. Deja `ABLY_API_KEY` y `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` vacíos; no hacen falta para probar el respaldo por polling/lista.
+4. Inicializa únicamente la base local y crea los datos de prueba:
+   ```bash
+   npx prisma db push
+   node --env-file=.env prisma/seed.mjs
+   ```
+   `DEMO_DATA=on` borra y vuelve a crear **solo** usuarios demo de esa base local. Nunca apuntes este comando a Neon de producción.
+5. Inicia la web/API para que los teléfonos puedan alcanzarla:
+   ```bash
+   npm run dev -- --hostname 0.0.0.0
+   ```
+   Mantén esta terminal abierta. En Windows, permite Node.js en la red privada si el firewall lo pregunta.
+6. Busca la IP local del PC (por ejemplo, `192.168.1.20`). En una segunda terminal, instala e inicia cada app desde su propia carpeta (no desde la raíz):
+   ```bash
+   cd apps/driver
+   npm ci
+   ```
+   Linux/macOS:
+   ```bash
+   EXPO_PUBLIC_API_URL=http://192.168.1.20:3000 npx expo start --lan
+   ```
+   Windows PowerShell:
+   ```powershell
+   $env:EXPO_PUBLIC_API_URL="http://192.168.1.20:3000"
+   npx expo start --lan
+   ```
+   Escanea el QR con Expo Go. En otra terminal repite el procedimiento desde `apps/passenger` para el segundo teléfono. Sustituye la IP de ejemplo por la IP real del PC. Permite el puerto de Expo en el firewall si hace falta.
+7. Inicia sesión con el chofer local `express@demo.collagetaxi.com` en la app Chofer y con el pasajero `ana@demo.collagetaxi.com` en la app Pasajero. Como no configuraste correo SMTP, abre en el navegador del PC el enlace mágico que aparece en la terminal de Next.js, copia el código de la página segura y escríbelo en la app correspondiente.
+8. En la app Chofer elige el viaje con Ana, marca **Voy en camino** y pulsa **Compartir mi ubicación**. Acepta ubicación “mientras se usa la app”; mantén abierta esa pantalla. En la app Pasajero elige el viaje: el marcador se actualiza por polling. Admin `/admin` muestra la lista y la edad de ubicación; sin token Mapbox es normal que no se dibuje el mapa.
+9. Detén la prueba con **Dejar de compartir** y cierra Expo. Expo Go solo valida primer plano: no se implementa ni solicita ubicación en segundo plano en esta fase.
+
+La web del PR incluye el mapa visual Mapbox del Admin cuando se configura `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`. Para activarlo más adelante, crea tú un token público `pk.*` en Mapbox, limita sus URL permitidas a `https://app.collagetaxi.com/*` (y, para desarrollo, `http://localhost:3000/*`) y usa solo el permiso mínimo de lectura de estilos. Guárdalo en las variables de Hostinger y reconstruye; el token público aparecerá en el JavaScript del navegador por diseño. **No pegues aquí el token ni crees un token secreto `sk.*`.** Sin token, sin cuenta Mapbox o ante un error del mapa, la lista sigue funcionando. No hay ETA de carretera ni se contrató ningún servicio.
 
 ---
 
@@ -86,7 +136,7 @@ Los workspaces Expo viven en `apps/passenger` y `apps/driver`; el cliente API y 
 - **next-intl 4**: español/inglés. Textos en `messages/es.json` y `messages/en.json`. El idioma de la app sale de la
   cookie `NEXT_LOCALE`; en páginas públicas lo fuerza la URL (middleware pone el header `x-page-locale`).
 - **nodemailer 10** (con `overrides` en package.json para satisfacer el peer de next-auth).
-- `npm audit --omit=dev` → 0 vulnerabilidades (los 11 avisos de Hostinger son de devDependencies).
+- `npm audit --omit=dev` en la web → 0 vulnerabilidades. Las apps Expo conservan avisos altos transitivos en `braces` y `node-forge` del toolchain Expo/Metro; se actualizó `uuid` sin forzar versiones incompatibles. `npm audit fix --force` propone bajar Expo a la versión 44 y no es seguro para el SDK 57, así que no se aplicó.
 
 ---
 
@@ -152,20 +202,23 @@ Los workspaces Expo viven en `apps/passenger` y `apps/driver`; el cliente API y 
   expiran con sus fechas (o 60 días), enlace de baja `/api/alerts/unsubscribe?token=` → página `/unsubscribed`.
 - Gestión en `/alerts`. Limitación conocida: coincidencias dentro de las 3 h no generan correo (no hay cola ni cron).
 
-### Panel de Admin (`/admin/*`, refresco automático cada 30 s que se pausa al escribir)
+### Panel de Admin (`/admin/*`, refresco automático general cada 30 s que se pausa al escribir)
 - **Resumen**: totales, acuerdos recientes, botones para recrear/borrar datos demo.
 - **Usuarios**: estado (activo / en espera por pago / suspendido / eliminar), verificación de conductores.
 - **Ofertas y solicitudes**: cancelar, reactivar, borrar (solo sin acuerdos).
 - **Acuerdos**: cancelar (reembolso simulado).
 - **Calificaciones**: cola de comentarios, publicar/rechazar, ocultar.
+- **Seguimiento en vivo**: viajes activos y antigüedad de posición; lista siempre disponible y mapa Mapbox opcional. La sección consulta la API cada 10 s.
 - **Registro** (`AdminLog`): toda acción de admin con motivo.
 - **Sesiones móviles**: en Admin → Usuarios, «Cerrar sesiones móviles» revoca los tokens del usuario.
 
-### API móvil y ubicación (base Fase 1)
+### API móvil, apps y ubicación (Fases 1–3 en primer plano)
 - Login móvil por enlace mágico, confirmación web y código PKCE de un solo uso (10 minutos); el token se almacena como hash y vence tras 30 días sin actividad.
 - Las rutas `/api/v1/trips/*` validan el estado de la cuenta y la pertenencia al viaje; solo el chofer aprobado de un viaje pagado y activo puede enviar ubicación. El pasajero de ese viaje y Admin pueden leerla.
 - Las posiciones se guardan en `DriverLocation`; el endpoint `/api/v1/admin/live` entrega solo viajes activos a Admin.
 - Ably es opcional (`ABLY_API_KEY`): el polling sigue funcionando si no hay clave o el servicio falla.
+- Las apps Expo tienen lockfiles separados; la raíz/ZIP web no instala Expo ni React Native. El mapa móvil usa `react-native-maps`. Solo Chofer pide ubicación en primer plano y deja de enviarla al salir de la app; no se solicita permiso en segundo plano.
+- Mapbox usa un token público `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` restringido por dominio. Si falta o no carga, Admin conserva la lista; no se calcula ETA de carretera.
 - Configurar en Hostinger un cron diario para `GET /api/cron/cleanup-locations`; el encabezado `Authorization` debe contener el valor de `LOCATION_CLEANUP_SECRET`. Así se eliminan ubicaciones con más de 30 días y credenciales vencidas.
 
 ### Páginas públicas y SEO

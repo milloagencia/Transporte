@@ -26,7 +26,6 @@ export async function GET(request: Request) {
       },
     },
     orderBy: { updatedAt: "desc" },
-    take: 100,
   })
   return NextResponse.json(trips, { headers: { "Cache-Control": "no-store" } })
 }

@@ -139,12 +139,15 @@ export default function LiveTrips() {
         <p className="rounded-md bg-blue-50 p-3 text-sm text-blue-900">
           El mapa está desactivado porque falta NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN. La lista de viajes sigue disponible.
         </p>
-      ) : mapError ? (
-        <p role="status" className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-          No se pudo cargar Mapbox. Puedes consultar la lista de viajes y ubicaciones debajo.
-        </p>
       ) : (
-        <div ref={mapContainer} className="h-80 w-full overflow-hidden rounded-lg border bg-gray-100" aria-label="Mapa de viajes activos" />
+        <>
+          {mapError && (
+            <p role="status" className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+              No se pudo cargar Mapbox. Puedes consultar la lista de viajes y ubicaciones debajo.
+            </p>
+          )}
+          <div ref={mapContainer} className="h-80 w-full overflow-hidden rounded-lg border bg-gray-100" aria-label="Mapa de viajes activos" />
+        </>
       )}
 
       {trips.length === 0 ? (

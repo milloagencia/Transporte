@@ -1,6 +1,6 @@
 # Plan de apps móviles y seguimiento en vivo
 
-**Estado:** aprobada por el propietario el 7 de octubre de 2026. Cada fase de implementación tendrá su propio PR.
+**Estado:** fases 1, 2 y la prueba vertical en primer plano de la fase 3 implementadas en el PR #5; falta revisar/aprobar. No se ha desplegado a Hostinger ni conectado a Neon de producción.
 
 ## 1. Auditoría del repositorio
 
@@ -16,7 +16,7 @@ Revisé `main` en GitHub y el checkout disponible:
 
 ### Monorepo sin poner en riesgo la web
 
-El objetivo funcional sigue siendo tres experiencias: pasajero, chofer y administración web, con un backend y una sola base Neon. Propongo **no mover de inmediato la web existente** desde la raíz a `apps/web`: Hostinger construye actualmente desde la raíz con `npm run build`, y moverla podría romper el despliegue. Primero añadiremos workspaces con `apps/passenger`, `apps/driver` y `packages/shared`, manteniendo Next.js en la raíz; trasladar la web a `apps/web` sería un cambio separado después de validar el despliegue. Es una diferencia temporal y deliberada respecto al árbol sugerido.
+El objetivo funcional sigue siendo tres experiencias: pasajero, chofer y administración web, con un backend y una sola base Neon. Se mantiene la web Next.js en la raíz porque Hostinger construye desde allí. Para que Hostinger no instale Expo/React Native, la raíz **no declara workspaces**: cada app móvil tiene su `package.json` y `package-lock.json` independientes y usa `packages/shared` como dependencia local. El ZIP web también excluye `apps/` y `packages/`.
 
 `packages/shared` podrá contener tipos, esquemas Zod, cliente HTTP e idiomas es/en compartidos. La web y las apps seguirán usando el mismo contrato de API; no se duplicará la lógica de negocio ni se conectarán móviles directamente a Neon.
 
@@ -49,9 +49,9 @@ Cada fase termina con validación y un PR independiente. No se iniciará la sigu
 - Entregar esta auditoría, la arquitectura, las fases y las tareas del propietario.
 - **Sin cambios de código ni cambios en Neon/Hostinger.**
 
-### Fase 1 — Base segura: workspaces, API y datos
+### Fase 1 — Base segura: API y datos
 
-- Añadir workspaces móviles manteniendo la web en la raíz.
+- Mantener la web en la raíz y aislar la instalación de cada app Expo y su lockfile; la instalación/ZIP de Hostinger debe contener solo dependencias web.
 - Diseñar e implementar la sesión móvil, permisos, estados operativos y almacenamiento de ubicación.
 - Añadir endpoints de escritura/lectura con autorización por viaje, rate limits y validación.
 - Añadir publicación de eventos en tiempo real con respaldo de polling y un mecanismo programado para borrar historial vencido.
@@ -59,17 +59,17 @@ Cada fase termina con validación y un PR independiente. No se iniciará la sigu
 
 ### Fase 2 — Mapa en vivo del administrador web
 
-- Añadir a `/admin` un mapa con viajes activos, última ubicación y antigüedad de cada posición.
-- Incorporar lista/estados como alternativa accesible al mapa.
-- Verificar que el mapa nunca revela ubicaciones a usuarios no administradores y que la vista se actualiza por Ably o polling.
+- [x] Añadir a `/admin` un mapa Mapbox opcional con viajes activos, última ubicación y antigüedad de cada posición.
+- [x] Incorporar lista/estados como alternativa cuando falte el token o el mapa no cargue.
+- [x] La API limita la vista a Admin; el panel actualiza la lista y el mapa por polling cada 10 segundos.
 
 ### Fase 3 — Prueba vertical en teléfonos con Expo Go
 
-- Crear las apps Expo de chofer y pasajero, con español/inglés y cliente compartido.
-- Chofer: iniciar sesión, otorgar permiso de ubicación mientras usa la app e iniciar/detener el envío durante el viaje.
-- Pasajero: iniciar sesión y ver el estado, la posición y la ETA del chofer de su viaje; comprobar que no puede consultar viajes ajenos.
-- Probar primero ubicación **en primer plano** en Expo Go. El seguimiento real en segundo plano requiere configuración nativa y una build de desarrollo/EAS; Expo Go no es una prueba fiable de ese comportamiento en todos los dispositivos/versiones.
-- Entregar instrucciones exactas, sencillas y reproducibles para probar con dos teléfonos y cuentas de prueba.
+- [x] Completar pantallas iniciales de chofer y pasajero en español/inglés con cliente compartido.
+- [x] Chofer: iniciar sesión, conceder solo permiso en primer plano, cambiar estado y comenzar/detener el envío de ubicación en un viaje activo.
+- [x] Pasajero: consultar solo sus viajes y ver el estado y posición del chofer de su viaje.
+- [x] Documentar la prueba inicial en Expo Go en primer plano; no se solicita ubicación en segundo plano y no hay ETA de carretera.
+- [x] Agregar pasos para probar con teléfonos, servidor local y cuentas de demo no productivas en `docs/HANDOFF.md`.
 
 ### Fase 4 — Preparación para publicación
 
@@ -93,4 +93,4 @@ Además, el propietario aprobó el acceso móvil por enlace mágico, confirmaci�
 
 Antes de un lanzamiento público también habrá que revisar con asesoría legal el consentimiento y privacidad de ubicación en Nebraska, la actividad regulada, seguros, términos y retención de datos, como ya advierte el handoff.
 
-La Fase 1 está en implementación en el PR de esta fase. No se desplegará en Hostinger ni se modificarán las variables de producción desde esta sesión.
+Las fases 1 y 2, y el flujo de primer plano de la fase 3, están en el PR #5 pendiente de aprobación. No se desplegará en Hostinger ni se modificarán datos o variables de producción desde esta sesión. Las apps usan lockfiles propios y la raíz/ZIP de Hostinger excluye las carpetas móviles.

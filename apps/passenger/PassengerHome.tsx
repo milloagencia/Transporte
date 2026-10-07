@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import MapView, { Marker } from "react-native-maps"
 import { mobileApiRequest } from "@collage/shared"
@@ -34,6 +34,7 @@ const TEXT = {
     privacy: "Solo puedes ver la ubicación del chofer de tu propio viaje activo.",
     noEta: "ETA de carretera no disponible.",
     updated: "Última actualización",
+    stale: "La ubicación puede estar desactualizada.",
     error: "No se pudieron cargar los viajes.",
   },
   en: {
@@ -53,6 +54,7 @@ const TEXT = {
     privacy: "You can only view the driver location for your own active trip.",
     noEta: "Road ETA is not available.",
     updated: "Last update",
+    stale: "This location may be outdated.",
     error: "Could not load trips.",
   },
 } as const
@@ -64,6 +66,7 @@ export function PassengerHome({ user, language }: { user: User; language: Langua
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState("")
   const selectedTrip = useMemo(() => trips.find((trip) => trip.id === selectedId), [trips, selectedId])
+  const mapRef = useRef<MapView>(null)
 
   useEffect(() => {
     let active = true
@@ -96,6 +99,19 @@ export function PassengerHome({ user, language }: { user: User; language: Langua
   const location = selectedTrip && ACTIVE_STATUSES.includes(selectedTrip.operationalStatus)
     ? selectedTrip.driverLocations[0]
     : undefined
+  const latitude = location?.latitude
+  const longitude = location?.longitude
+  const staleLocation = location && Date.now() - new Date(location.createdAt).getTime() > 60_000
+
+  useEffect(() => {
+    if (latitude === undefined || longitude === undefined) return
+    mapRef.current?.animateToRegion({
+      latitude,
+      longitude,
+      latitudeDelta: 0.02,
+      longitudeDelta: 0.02,
+    }, 500)
+  }, [latitude, longitude])
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -135,6 +151,7 @@ export function PassengerHome({ user, language }: { user: User; language: Langua
           {location ? (
             <>
               <MapView
+                ref={mapRef}
                 accessibilityLabel={text.driver}
                 initialRegion={{ latitude: location.latitude, longitude: location.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }}
                 style={styles.map}
@@ -144,6 +161,7 @@ export function PassengerHome({ user, language }: { user: User; language: Langua
               <Text style={styles.note}>
                 {text.updated}: {new Date(location.createdAt).toLocaleTimeString(language === "es" ? "es" : "en")}
               </Text>
+              {staleLocation && <Text style={styles.stale}>{text.stale}</Text>}
             </>
           ) : (
             <Text style={styles.info}>{text.waiting}</Text>
@@ -172,5 +190,6 @@ const styles = StyleSheet.create({
   status: { color: "#475569" },
   map: { width: "100%", height: 320, borderRadius: 8 },
   note: { color: "#64748b", fontSize: 13 },
+  stale: { color: "#b45309", fontSize: 13, fontWeight: "600" },
   message: { color: "#9a3412", lineHeight: 21 },
 })

@@ -85,7 +85,8 @@ export function DriverHome({ user, language }: { user: User; language: Language 
   const [position, setPosition] = useState<Location.LocationObjectCoords | null>(null)
   const [message, setMessage] = useState("")
   const selectedTrip = useMemo(() => trips.find((trip) => trip.id === selectedId), [trips, selectedId])
-  const sharingTrip = trips.find((trip) => trip.id === sharingTripId)
+  const sharingStatus = trips.find((trip) => trip.id === sharingTripId)?.operationalStatus
+  const mapRef = useRef<MapView>(null)
   const sendingRef = useRef(false)
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export function DriverHome({ user, language }: { user: User; language: Language 
   }, [text.error, user.id])
 
   useEffect(() => {
-    if (!sharingTripId || !sharingTrip || !ACTIVE_STATUSES.includes(sharingTrip.operationalStatus)) return
+    if (!sharingTripId || !sharingStatus || !ACTIVE_STATUSES.includes(sharingStatus)) return
     let active = true
     let subscription: Location.LocationSubscription | undefined
     let lastSentAt = 0
@@ -167,7 +168,17 @@ export function DriverHome({ user, language }: { user: User; language: Language 
       subscription?.remove()
       appStateSubscription.remove()
     }
-  }, [sharingTrip, sharingTripId, text.foreground, text.gpsError])
+  }, [sharingStatus, sharingTripId, text.foreground, text.gpsError])
+
+  useEffect(() => {
+    if (!position) return
+    mapRef.current?.animateToRegion({
+      latitude: position.latitude,
+      longitude: position.longitude,
+      latitudeDelta: 0.015,
+      longitudeDelta: 0.015,
+    }, 500)
+  }, [position])
 
   async function updateStatus(status: string) {
     if (!selectedTrip) return
@@ -248,7 +259,11 @@ export function DriverHome({ user, language }: { user: User; language: Language 
           <Text style={styles.label}>{text.select}</Text>
           <View style={styles.tripList}>
             {trips.map((trip) => (
-              <Pressable key={trip.id} onPress={() => setSelectedId(trip.id)} style={[styles.tripChoice, selectedId === trip.id && styles.tripChoiceSelected]}>
+              <Pressable key={trip.id} onPress={() => {
+                if (sharingTripId && sharingTripId !== trip.id) setSharingTripId("")
+                setPosition(null)
+                setSelectedId(trip.id)
+              }} style={[styles.tripChoice, selectedId === trip.id && styles.tripChoiceSelected]}>
                 <Text style={styles.tripText}>{text[trip.operationalStatus as keyof typeof text] ?? trip.operationalStatus} · {trip.id.slice(-6)}</Text>
               </Pressable>
             ))}
@@ -274,6 +289,7 @@ export function DriverHome({ user, language }: { user: User; language: Language 
           )}
           {position ? (
             <MapView
+              ref={mapRef}
               accessibilityLabel={text.location}
               initialRegion={{ latitude: position.latitude, longitude: position.longitude, latitudeDelta: 0.015, longitudeDelta: 0.015 }}
               style={styles.map}

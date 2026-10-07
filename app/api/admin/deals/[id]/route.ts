@@ -15,7 +15,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (deal.status === "completed" || deal.status === "cancelled") return NextResponse.json({ error: "deal_closed" }, { status: 400 })
 
   await db.$transaction([
-    db.deal.update({ where: { id }, data: { status: "cancelled" } }),
+    db.deal.update({ where: { id }, data: { status: "cancelled", operationalStatus: "cancelled" } }),
     ...(deal.payment ? [db.payment.update({ where: { dealId: id }, data: { status: "simulated_refunded" } })] : []),
     ...(deal.cancellation ? [] : [db.cancellation.create({ data: { dealId: id, cancelledById: me.id, reason: `Admin: ${reason ?? ""}`, penaltyRate: 0, penaltyAmount: 0 } })]),
   ])

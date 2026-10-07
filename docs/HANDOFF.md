@@ -26,7 +26,7 @@ Especificación original: `docs/PRD.md` (Fase 0 = sin Stripe, sin mapas, verific
 | App en producción | **Hostinger** (plan *Business Web Hosting*, función **Node.js Web Apps**) | `https://app.collagetaxi.com` (subdominio de collagetaxi.com, cuyo sitio principal es WordPress). Plan renovado hasta 2027-10-03. |
 | Base de datos | **Neon** (PostgreSQL, plan gratis) | Proyecto **"Transporte USA"**, rama `production`, base `neondb`, región AWS US East 1. Se usa la conexión **directa (sin pooling)**. |
 | Correo saliente (magic links y alertas) | **Titan Email** (incluido con Hostinger) | Buzón `noreply@collagetaxi.com`. SMTP `smtp.titan.email:465` (¡no `smtp.hostinger.com`!). |
-| Código fuente | **GitHub** `milloagencia/Transporte` | ⚠️ **Desactualizado**: `main` solo tiene docs; el código original de Copilot está en la rama `copilot/collage-transport-nebraska`. **Los 9 commits nuevos NO están en GitHub** (ver §8). |
+| Código fuente | **GitHub** `milloagencia/Transporte` | `main` ya contiene la aplicación completa. La descripción histórica de ramas que aparece en §8 puede estar desactualizada; revisar las ramas y PR actuales antes de desplegar. |
 | Admin de la app | Cuenta `collagetropical@gmail.com` | Se vuelve admin automáticamente al iniciar sesión (variable `ADMIN_EMAIL`). |
 
 ### Variables de entorno (en Hostinger → app.collagetaxi.com → Environment variables)
@@ -43,7 +43,10 @@ Los **valores secretos solo están en Hostinger** (nunca en el código ni en est
 | `EMAIL_HOST` | `smtp.titan.email` |
 | `EMAIL_USER` | `noreply@collagetaxi.com` |
 | `EMAIL_PASSWORD` | Contraseña del buzón (solo letras y números: con `$`, `#` o `%` falló). ⚠️ Se compartió en el chat: **rotarla**. |
-| `DEMO_DATA` | `on` = cada build recrea datos de prueba con fechas nuevas · `off` = los borra · ausente = no hace nada |
+| `DEMO_DATA` | Solo fuera de producción: `on` crea demos y `off` los borra; en builds de producción se omiten ambos cambios |
+| `ABLY_API_KEY` | (opcional) Clave privada de Ably para eventos de ubicación; si falta, los clientes usan polling |
+| `LOCATION_CLEANUP_SECRET` | Secreto del cron diario que elimina historial de ubicación de más de 30 días |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | (opcional, fase posterior) Token público restringido por dominio para el mapa web |
 | (opcional) `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | Verificación de Search Console / Bing |
 
 Guardar variables en Hostinger requiere pulsar **"Apply changes"** (o "Save and redeploy"); eso vuelve a construir la app.
@@ -60,7 +63,7 @@ No hay CI ni conexión GitHub→Hostinger (no tenemos permiso de escritura en Gi
 4. Hostinger ejecuta: `npm install` (con `postinstall: prisma generate`) y `npm run build`, que es:
    `prisma generate && prisma db push --skip-generate && node prisma/seed.mjs && next build`
    - `prisma db push` sincroniza el esquema con Neon (**no hay migraciones**; cambios destructivos pedirían confirmación y fallarían).
-   - `prisma/seed.mjs` carga el catálogo de 54 vehículos y, según `DEMO_DATA`, los datos de prueba.
+   - `prisma/seed.mjs` carga el catálogo de vehículos. `DEMO_DATA` solo modifica demos fuera de producción; en `NODE_ENV=production` el seed nunca crea ni borra demos.
 5. Revisar el log del deployment (debe terminar en "Deployment completed") y **Runtime logs** para errores en ejecución.
 
 Detalles de Hostinger: Node 20, Next.js detectado automáticamente, salida `.next`, la app se "duerme" sin tráfico
@@ -153,6 +156,14 @@ Sin `EMAIL_*` el magic link se imprime en la consola.
 - **Acuerdos**: cancelar (reembolso simulado).
 - **Calificaciones**: cola de comentarios, publicar/rechazar, ocultar.
 - **Registro** (`AdminLog`): toda acción de admin con motivo.
+- **Sesiones móviles**: en Admin → Usuarios, «Cerrar sesiones móviles» revoca los tokens del usuario.
+
+### API móvil y ubicación (base Fase 1)
+- Login móvil por enlace mágico, confirmación web y código PKCE de un solo uso (10 minutos); el token se almacena como hash y vence tras 30 días sin actividad.
+- Las rutas `/api/v1/trips/*` validan el estado de la cuenta y la pertenencia al viaje; solo el chofer aprobado de un viaje pagado y activo puede enviar ubicación. El pasajero de ese viaje y Admin pueden leerla.
+- Las posiciones se guardan en `DriverLocation`; el endpoint `/api/v1/admin/live` entrega solo viajes activos a Admin.
+- Ably es opcional (`ABLY_API_KEY`): el polling sigue funcionando si no hay clave o el servicio falla.
+- Configurar en Hostinger un cron diario para `GET /api/cron/cleanup-locations`; el encabezado `Authorization` debe contener el valor de `LOCATION_CLEANUP_SECRET`. Así se eliminan ubicaciones con más de 30 días y credenciales vencidas.
 
 ### Páginas públicas y SEO
 - `/` (inglés) y `/es` (español), 3 servicios (`/services/*`, `/es/servicios/*`) y 8 ciudades

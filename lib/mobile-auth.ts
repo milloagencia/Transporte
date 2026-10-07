@@ -21,8 +21,7 @@ export function randomSecret() {
 }
 
 export function requestIp(request: Request) {
-  return (request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "unknown")
-    .split(",")[0]
+  return (request.headers.get("x-real-ip") ?? request.headers.get("x-forwarded-for")?.split(",").at(-1) ?? "unknown")
     .trim()
     .slice(0, 100)
 }

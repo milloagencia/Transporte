@@ -113,38 +113,38 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  image         String?
-  emailVerified DateTime?
-  language      String    @default("en")
-  role          UserRole  @default(user)
-  status          AccountStatus @default(active)
-  statusReason    String?
-  statusChangedAt DateTime?
+  id               String           @id @default(cuid())
+  email            String           @unique
+  name             String?
+  image            String?
+  emailVerified    DateTime?
+  language         String           @default("en")
+  role             UserRole         @default(user)
+  status           AccountStatus    @default(active)
+  statusReason     String?
+  statusChangedAt  DateTime?
   // Onboarding: what the user wants to do and who they are
-  accountType     AccountType @default(individual)
-  wantsToShip     Boolean     @default(false)
-  wantsToDrive    Boolean     @default(false)
-  contactName     String?
-  phone           String?
-  usdotNumber     String?
-  onboardedAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  accountType      AccountType      @default(individual)
+  wantsToShip      Boolean          @default(false)
+  wantsToDrive     Boolean          @default(false)
+  contactName      String?
+  phone            String?
+  usdotNumber      String?
+  onboardedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   accounts         Account[]
   sessions         Session[]
   driverProfile    DriverProfile?
   tripOffers       TripOffer[]
   tripRequests     TripRequest[]
-  dealsAsDriver    Deal[]         @relation("DealDriver")
-  dealsAsRequester Deal[]         @relation("DealRequester")
+  dealsAsDriver    Deal[]           @relation("DealDriver")
+  dealsAsRequester Deal[]           @relation("DealRequester")
   proposals        Proposal[]
   walletCredits    WalletCredit[]
   vehicles         Vehicle[]
-  reviewsWritten   Review[]       @relation("ReviewAuthor")
-  reviewsReceived  Review[]       @relation("ReviewSubject")
+  reviewsWritten   Review[]         @relation("ReviewAuthor")
+  reviewsReceived  Review[]         @relation("ReviewSubject")
   adminActions     AdminLog[]
   alerts           TripAlert[]
   mobileSessions   MobileSession[]
@@ -165,6 +165,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -180,6 +181,7 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
 }
 
@@ -267,40 +269,40 @@ model TripRequest {
 }
 
 model Deal {
-  id              String       @id @default(cuid())
-  tripOfferId     String?
-  tripOffer       TripOffer?   @relation(fields: [tripOfferId], references: [id])
-  tripRequestId   String?
-  tripRequest     TripRequest? @relation(fields: [tripRequestId], references: [id])
-  driverId        String
-  driver          User         @relation("DealDriver", fields: [driverId], references: [id])
-  requesterId     String
-  requester       User         @relation("DealRequester", fields: [requesterId], references: [id])
-  status          DealStatus   @default(negotiating)
-  operationalStatus String     @default("accepted")
-  exclusivity     Exclusivity  @default(exclusive)
-  finalPrice      Float?
-  platformFeeRate Float        @default(0.10)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  proposals       Proposal[]
-  payment         Payment?
-  completion      CompletionConfirmation?
-  cancellation    Cancellation?
-  reviews         Review[]
-  driverLocations DriverLocation[]
+  id                String                  @id @default(cuid())
+  tripOfferId       String?
+  tripOffer         TripOffer?              @relation(fields: [tripOfferId], references: [id])
+  tripRequestId     String?
+  tripRequest       TripRequest?            @relation(fields: [tripRequestId], references: [id])
+  driverId          String
+  driver            User                    @relation("DealDriver", fields: [driverId], references: [id])
+  requesterId       String
+  requester         User                    @relation("DealRequester", fields: [requesterId], references: [id])
+  status            DealStatus              @default(negotiating)
+  operationalStatus String                  @default("accepted")
+  exclusivity       Exclusivity             @default(exclusive)
+  finalPrice        Float?
+  platformFeeRate   Float                   @default(0.10)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  proposals         Proposal[]
+  payment           Payment?
+  completion        CompletionConfirmation?
+  cancellation      Cancellation?
+  reviews           Review[]
+  driverLocations   DriverLocation[]
 }
 
 model MobileAuthRequest {
-  id              String    @id @default(cuid())
-  codeChallenge   String
-  email           String?
-  loginAttempts   Int       @default(0)
-  codeHash        String?
-  codeExpiresAt   DateTime?
-  codeUsedAt      DateTime?
-  expiresAt       DateTime
-  createdAt       DateTime  @default(now())
+  id            String    @id @default(cuid())
+  codeChallenge String
+  email         String?
+  loginAttempts Int       @default(0)
+  codeHash      String?
+  codeExpiresAt DateTime?
+  codeUsedAt    DateTime?
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
 
   @@index([expiresAt])
   @@index([email, createdAt])
@@ -322,15 +324,15 @@ model MobileSession {
 }
 
 model DriverLocation {
-  id         String   @id @default(cuid())
-  dealId     String
-  deal       Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
-  driverId   String
-  driver     User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  latitude   Float
-  longitude  Float
-  accuracyM  Float?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  dealId    String
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  driverId  String
+  driver    User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  latitude  Float
+  longitude Float
+  accuracyM Float?
+  createdAt DateTime @default(now())
 
   @@index([dealId, createdAt])
   @@index([driverId, createdAt])
@@ -486,9 +488,9 @@ model AdminLog {
 
 /// Saved search: email the user when a matching offer (kind=offers) or request (kind=requests) is posted.
 model TripAlert {
-  id               String       @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
-  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   kind             String
   requestId        String?
   vehicleId        String?
@@ -496,7 +498,7 @@ model TripAlert {
   originState      String?
   destCity         String?
   destState        String?
-  radiusMiles      Int          @default(25)
+  radiusMiles      Int       @default(25)
   dateFrom         DateTime?
   dateTo           DateTime?
   serviceType      String?
@@ -505,12 +507,12 @@ model TripAlert {
   cargoLengthIn    Float?
   cargoWidthIn     Float?
   cargoHeightIn    Float?
-  coldChain        ColdChain    @default(none)
-  active           Boolean      @default(true)
+  coldChain        ColdChain @default(none)
+  active           Boolean   @default(true)
   lastNotifiedAt   DateTime?
-  matchesSent      Int          @default(0)
-  unsubscribeToken String       @unique @default(cuid())
-  createdAt        DateTime     @default(now())
+  matchesSent      Int       @default(0)
+  unsubscribeToken String    @unique @default(cuid())
+  createdAt        DateTime  @default(now())
 
   @@index([kind, active])
 }

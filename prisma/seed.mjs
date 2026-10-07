@@ -27,10 +27,13 @@ async function main() {
   }
   console.log(`Vehicle catalog: ${VEHICLE_CATALOG.length} models`)
 
-  // DEMO_DATA=on  -> (re)create demo users, trips and deals with fresh dates
-  // DEMO_DATA=off -> remove them
-  if (process.env.DEMO_DATA === "on") console.log("Demo data:", await seedDemo(db))
-  if (process.env.DEMO_DATA === "off") console.log("Demo users removed:", await clearDemo(db))
+  // Production builds must never create or delete demo accounts.
+  if (process.env.NODE_ENV === "production") {
+    console.log("Demo data: skipped during production build")
+  } else {
+    if (process.env.DEMO_DATA === "on") console.log("Demo data:", await seedDemo(db))
+    if (process.env.DEMO_DATA === "off") console.log("Demo users removed:", await clearDemo(db))
+  }
 }
 
 main()

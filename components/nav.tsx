@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { auth } from "@/auth"
+import { auth, signOut } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { getTranslations, getLocale } from "next-intl/server"
 import LanguageToggle from "@/components/language-toggle"
@@ -34,7 +34,7 @@ export default async function Nav() {
             {session ? (
               <>
                 <Link href="/profile" className="text-sm text-gray-600">{session.user?.email}</Link>
-                <form action="/api/auth/signout" method="post"><Button variant="outline" size="sm" type="submit">{t("signOut")}</Button></form>
+                <form action={async () => { "use server"; await signOut({ redirectTo: "/" }) }}><Button variant="outline" size="sm" type="submit">{t("signOut")}</Button></form>
               </>
             ) : (
               <Link href="/auth/signin"><Button size="sm">{t("signIn")}</Button></Link>

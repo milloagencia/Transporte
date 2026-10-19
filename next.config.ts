@@ -13,6 +13,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: { cpus: 1, workerThreads: false },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }]
   },

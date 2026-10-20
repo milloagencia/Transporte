@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import NextSteps from "@/components/next-steps"
 import { getSessionUser } from "@/lib/guards"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const me = await getSessionUser()
@@ -16,6 +16,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   if (!session?.user) return null
   const userId = (session.user as { id: string }).id
   const t = await getTranslations("dash")
+  const locale = await getLocale()
   const td = await getTranslations("deals")
   const ts = await getTranslations("status")
   const [offers, requests, deals] = await Promise.all([
@@ -37,7 +38,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </CardHeader>
           <CardContent>
             {offers.length === 0 ? <p className="text-sm text-gray-500">{t("noOffers")}</p> : (
-              <ul className="space-y-2">{offers.map((o) => <li key={o.id}><Link href={`/offers/${o.id}`} className="text-sm text-blue-600 hover:underline">{o.originCity} → {destLabel(o)} ({rateLabel(o.proposedRate, o.rateUnit)})</Link></li>)}</ul>
+              <ul className="space-y-2">{offers.map((o) => <li key={o.id}><Link href={`/offers/${o.id}`} className="text-sm text-blue-600 hover:underline">{o.originCity} → {destLabel(o, locale)} ({rateLabel(o.proposedRate, o.rateUnit, locale)})</Link></li>)}</ul>
             )}
           </CardContent>
         </Card>}

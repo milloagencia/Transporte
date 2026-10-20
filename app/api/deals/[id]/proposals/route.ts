@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
+import { notifyDealEvent } from "@/lib/deal-mail"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { accountBlock } from "@/lib/guards"
@@ -18,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   if (deal.status !== "negotiating") {
-    return NextResponse.json({ error: "Deal not in negotiating state" }, { status: 400 })
+    return NextResponse.json({ error: "deal_closed" }, { status: 400 })
   }
 
   const price = Number(body.price)
@@ -32,5 +33,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const proposal = await db.proposal.create({
     data: { dealId, proposedById: userId, price: Math.round(price * 100) / 100, message: typeof body.message === "string" ? body.message.slice(0, 500) : null },
   })
+  after(() => notifyDealEvent(dealId, userId, "proposal", proposal.price))
   return NextResponse.json(proposal, { status: 201 })
 }

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
+import { notifyDealEvent } from "@/lib/deal-mail"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { accountBlock } from "@/lib/guards"
@@ -13,7 +14,7 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
 
   const deal = await db.deal.findUnique({ where: { id: dealId }, include: { completion: true } })
   if (!deal) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  if (deal.status !== "paid_escrow") return NextResponse.json({ error: "Deal not in escrow" }, { status: 400 })
+  if (deal.status !== "paid_escrow") return NextResponse.json({ error: "deal_closed" }, { status: 400 })
   const isDriver = deal.driverId === userId
   const isRequester = deal.requesterId === userId
   if (!isDriver && !isRequester) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -28,5 +29,6 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
       db.payment.update({ where: { dealId }, data: { status: "simulated_released" } }),
     ])
   }
+  after(() => notifyDealEvent(dealId, userId, bothConfirmed ? "completed" : "confirmed"))
   return NextResponse.json({ ok: true, bothConfirmed })
 }

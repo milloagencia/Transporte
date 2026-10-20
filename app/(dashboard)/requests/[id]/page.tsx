@@ -17,6 +17,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   const session = await auth()
   const t = await getTranslations("trip")
   const tv = await getTranslations("vehicles")
+  const td = await getTranslations("deals")
   const request = await db.tripRequest.findUnique({
     where: { id },
     include: { requester: { select: { id: true, name: true } } },
@@ -56,7 +57,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             <Badge variant="secondary">{t(request.exclusivity)}</Badge>
           </div>
           {request.budgetProposed && <p className="text-sm"><strong>{t("budget")}:</strong> ${request.budgetProposed}</p>}
-          <p className="text-sm"><strong>Requester:</strong> {request.requester.name ?? "Usuario"}</p>
+          <p className="text-sm"><strong>{td("requester")}:</strong> {request.requester.name ?? td("user")}</p>
           <p className="text-sm"><strong>{t("from")}:</strong> {formatDateTime(request.windowFrom)} – {formatDateTime(request.windowTo)}</p>
           <div className="rounded-md bg-gray-50 p-3 text-sm">
             {request.serviceType === "people" ? (

@@ -14,7 +14,8 @@ export default function SiteShell({ lang, altHref, children }: { lang: Lang; alt
             <Link href={paths.service(lang, "rides")} className="hidden text-gray-600 hover:text-gray-900 sm:inline">{lang === "es" ? "Viajes compartidos" : "Rides"}</Link>
             <Link href={paths.service(lang, "cargo")} className="hidden text-gray-600 hover:text-gray-900 sm:inline">{lang === "es" ? "Envío de carga" : "Cargo"}</Link>
             <Link href={PAGES.pricing[lang]} className="hidden text-gray-600 hover:text-gray-900 min-[400px]:inline">{lang === "es" ? "Precios" : "Pricing"}</Link>
-            <Link href={altHref} hrefLang={lang === "es" ? "en" : "es"} className="text-gray-600 hover:text-gray-900">{ui.other}</Link>
+            {/* "/" would send a visitor who chose Spanish back to /es, so the switch says so explicitly */}
+            <Link href={lang === "es" && altHref === "/" ? "/?lang=en" : altHref} hrefLang={lang === "es" ? "en" : "es"} className="text-gray-600 hover:text-gray-900">{ui.other}</Link>
             <AccountLink lang={lang} signInLabel={ui.signIn} />
           </nav>
         </div>

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
+import { notifyDealEvent } from "@/lib/deal-mail"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { accountBlock } from "@/lib/guards"
@@ -21,7 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const isRequester = deal.requesterId === userId
   if (!isDriver && !isRequester) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   if (!["negotiating", "accepted_pending_payment"].includes(deal.status)) {
-    return NextResponse.json({ error: "Cannot cancel in current state" }, { status: 400 })
+    return NextResponse.json({ error: "deal_closed" }, { status: 400 })
   }
 
   const startTime = deal.tripOffer?.startWindowFrom ?? deal.tripRequest?.windowFrom
@@ -58,5 +59,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } else {
     await db.$transaction([...baseOps])
   }
+  after(() => notifyDealEvent(dealId, userId, "cancelled"))
   return NextResponse.json({ ok: true, penaltyAmount, creditIssued })
 }

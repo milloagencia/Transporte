@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import DealActions from "./DealActions"
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import ReviewForm from "@/components/review-form"
 import { Stars } from "@/components/stars"
 import { reviewWindowOpen } from "@/lib/ratings"
@@ -39,6 +39,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
   const t = await getTranslations("reviews")
   const td = await getTranslations("deals")
   const ts = await getTranslations("status")
+  const locale = await getLocale()
 
   // Privacy: emails are only shared once the trip is paid (PRD §5)
   const contactShared = ["paid_escrow", "completed"].includes(deal.status) || isAdmin
@@ -81,6 +82,8 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
               }))}
               currentUserId={currentUserId}
               isRequester={isRequester}
+              iConfirmed={Boolean(isDriver ? deal.completion?.confirmedByDriverAt : deal.completion?.confirmedByRequesterAt)}
+              otherConfirmed={Boolean(isDriver ? deal.completion?.confirmedByRequesterAt : deal.completion?.confirmedByDriverAt)}
             />
           )}
         </CardContent>
@@ -128,7 +131,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-500">
-                    {td("by", { name: p.proposedBy.name ?? td("user") })} · {formatDateTime(p.createdAt)}
+                    {td("by", { name: p.proposedBy.name ?? td("user") })} · {formatDateTime(p.createdAt, locale)}
                   </p>
                   {p.message && <p className="text-sm text-gray-700 mt-1">{p.message}</p>}
                 </li>

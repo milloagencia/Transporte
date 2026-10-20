@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
+import { notifyDealEvent } from "@/lib/deal-mail"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { accountBlock } from "@/lib/guards"
@@ -13,8 +14,8 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
 
   const deal = await db.deal.findUnique({ where: { id: dealId } })
   if (!deal) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  if (deal.requesterId !== userId) return NextResponse.json({ error: "Only requester can pay" }, { status: 403 })
-  if (deal.status !== "accepted_pending_payment") return NextResponse.json({ error: "Not ready for payment" }, { status: 400 })
+  if (deal.requesterId !== userId) return NextResponse.json({ error: "pay_requester_only" }, { status: 403 })
+  if (deal.status !== "accepted_pending_payment") return NextResponse.json({ error: "deal_closed" }, { status: 400 })
   if (!deal.finalPrice) return NextResponse.json({ error: "No final price set" }, { status: 400 })
 
   const platformFee = deal.finalPrice * deal.platformFeeRate
@@ -26,5 +27,6 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
       data: { dealId, autoReleaseAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
     }),
   ])
+  after(() => notifyDealEvent(dealId, userId, "paid"))
   return NextResponse.json({ ok: true })
 }

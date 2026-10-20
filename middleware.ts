@@ -58,7 +58,8 @@ export default function middleware(req: NextRequest) {
   }
 
   // Visitors who chose Spanish in the app land on the Spanish home page
-  if (path === "/" && req.cookies.get("NEXT_LOCALE")?.value === "es") {
+  // (unless they just pressed "English", which links to /?lang=en)
+  if (path === "/" && req.cookies.get("NEXT_LOCALE")?.value === "es" && req.nextUrl.searchParams.get("lang") !== "en") {
     return NextResponse.redirect(new URL("/es", req.nextUrl))
   }
 
@@ -77,7 +78,12 @@ export default function middleware(req: NextRequest) {
   if (pageLocale) {
     const headers = new Headers(req.headers)
     headers.set("x-page-locale", pageLocale)
-    return NextResponse.next({ request: { headers } })
+    const res = NextResponse.next({ request: { headers } })
+    // Remember the language the visitor is reading, so the language switch and the app agree
+    if (req.cookies.get("NEXT_LOCALE")?.value !== pageLocale) {
+      res.cookies.set("NEXT_LOCALE", pageLocale, { path: "/", maxAge: 365 * 24 * 3600, sameSite: "lax" })
+    }
+    return res
   }
   return NextResponse.next()
 }

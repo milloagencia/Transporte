@@ -16,6 +16,8 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
   const session = await auth()
   const t = await getTranslations("trip")
   const tv = await getTranslations("vehicles")
+  const td = await getTranslations("deals")
+  const ts = await getTranslations("status")
   const locale = await getLocale()
   const offer = await db.tripOffer.findUnique({
     where: { id },
@@ -41,11 +43,11 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
           <div className="flex gap-2">
             <Badge>{t(offer.serviceType)}</Badge>
             <Badge variant="secondary">{t(offer.exclusivity)}</Badge>
-            <Badge variant={offer.status === "active" ? "success" : "secondary"}>{offer.status}</Badge>
+            <Badge variant={offer.status === "active" ? "success" : "secondary"}>{ts(offer.status)}</Badge>
           </div>
           <p className="text-sm"><strong>{t("rate")}:</strong> {rateLabel(offer.proposedRate, offer.rateUnit, locale)}</p>
           {offer.anyDestination && <p className="rounded-md bg-blue-50 p-2 text-sm text-blue-900">{t("anyDestInfo")}</p>}
-          <p className="text-sm"><strong>Driver:</strong> {offer.driver.name ?? "Usuario"}</p>
+          <p className="text-sm"><strong>{td("driver")}:</strong> {offer.driver.name ?? td("user")}</p>
           <p className="text-sm"><strong>{t("availability")}:</strong> {formatDateTime(offer.startWindowFrom)} – {formatDateTime(offer.startWindowTo)}</p>
           {offer.vehicle && (
             <p className="text-sm"><strong>{t("vehicle")}:</strong> {offer.vehicle.make} {offer.vehicle.model} ({tv(`cat_${offer.vehicle.category}`)})</p>

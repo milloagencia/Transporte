@@ -1,7 +1,7 @@
 import { destLabel, rateLabel } from "@/lib/trip-labels"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { db } from "@/lib/db"
 import { ACTIVE_OWNER } from "@/lib/guards"
 import { auth } from "@/auth"
@@ -18,6 +18,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   const t = await getTranslations("trip")
   const tv = await getTranslations("vehicles")
   const td = await getTranslations("deals")
+  const locale = await getLocale()
   const request = await db.tripRequest.findUnique({
     where: { id },
     include: { requester: { select: { id: true, name: true } } },
@@ -58,7 +59,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           </div>
           {request.budgetProposed && <p className="text-sm"><strong>{t("budget")}:</strong> ${request.budgetProposed}</p>}
           <p className="text-sm"><strong>{td("requester")}:</strong> {request.requester.name ?? td("user")}</p>
-          <p className="text-sm"><strong>{t("from")}:</strong> {formatDateTime(request.windowFrom)} – {formatDateTime(request.windowTo)}</p>
+          <p className="text-sm"><strong>{t("from")}:</strong> {formatDateTime(request.windowFrom, locale)} – {formatDateTime(request.windowTo, locale)}</p>
           <div className="rounded-md bg-gray-50 p-3 text-sm">
             {request.serviceType === "people" ? (
               <p>{t("passengers")}: {request.passengerCount ?? 1}</p>
@@ -101,7 +102,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               compatible.map((o) => (
                 <Link key={o.id} href={`/offers/${o.id}`} className="flex items-center justify-between rounded-md border p-2 text-sm hover:bg-gray-50">
                   <span>
-                    {o.originCity} → {destLabel(o)} · {formatDate(o.startWindowFrom)} · {rateLabel(o.proposedRate, o.rateUnit)}
+                    {o.originCity} → {destLabel(o)} · {formatDate(o.startWindowFrom, locale)} · {rateLabel(o.proposedRate, o.rateUnit, locale)}
                     {o.vehicle ? ` · ${o.vehicle.make} ${o.vehicle.model}` : ""}
                   </span>
                   <Badge variant="success">{t("fits")}</Badge>

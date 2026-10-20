@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { db } from "@/lib/db"
 import { formatDate } from "@/lib/format"
 import { publicReviewsFor, ratingsFor } from "@/lib/ratings"
@@ -11,6 +11,8 @@ import { RatingBadge, Stars } from "@/components/stars"
 export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const t = await getTranslations("reviews")
+  const locale = await getLocale()
+  const td = await getTranslations("deals")
   const user = await db.user.findUnique({
     where: { id },
     select: { id: true, name: true, createdAt: true, status: true, accountType: true, wantsToDrive: true, wantsToShip: true, driverProfile: { select: { verificationStatus: true } } },
@@ -36,7 +38,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
             {user.driverProfile?.verificationStatus === "approved" && <Badge variant="success">{t("verifiedDriver")}</Badge>}
           </div>
           <p>{t("trips")}: {completed}</p>
-          <p className="text-gray-500">{t("memberSince")} {formatDate(user.createdAt)}</p>
+          <p className="text-gray-500">{t("memberSince")} {formatDate(user.createdAt, locale)}</p>
         </CardContent>
       </Card>
       <Card>
@@ -50,7 +52,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                 <li key={rv.id} className="py-3 text-sm">
                   <div className="flex items-center justify-between">
                     <Stars value={rv.stars} />
-                    <span className="text-xs text-gray-500">{rv.author.name ?? "Usuario"} · {formatDate(rv.createdAt)}</span>
+                    <span className="text-xs text-gray-500">{rv.author.name ?? td("user")} · {formatDate(rv.createdAt, locale)}</span>
                   </div>
                   <p className="mt-1 text-gray-700">“{rv.comment}”</p>
                 </li>

@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/seo-content"
 
 // Emails the other side of a deal when something happens that needs their attention,
 // so a counteroffer or an acceptance does not go unnoticed until they open the app.
-export type DealEvent = "proposal" | "accepted" | "paid" | "cancelled"
+export type DealEvent = "proposal" | "accepted" | "paid" | "cancelled" | "confirmed" | "completed"
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!)
 
@@ -16,12 +16,16 @@ function build(lang: string, event: DealEvent, who: string, price: number | null
     accepted: es ? `${who} aceptó el precio de ${money}` : `${who} accepted the ${money} price`,
     paid: es ? `El viaje con ${who} está pagado` : `Your trip with ${who} is paid`,
     cancelled: es ? `${who} canceló el acuerdo` : `${who} cancelled the deal`,
+    confirmed: es ? `${who} confirmó que el viaje se hizo` : `${who} confirmed the trip happened`,
+    completed: es ? `Viaje completado con ${who}` : `Trip with ${who} completed`,
   }[event]
   const body = {
     proposal: es ? "Puedes aceptarla o responder con otra propuesta." : "You can accept it or reply with another proposal.",
     accepted: es ? "Si eres el cliente, ya puedes hacer el pago para confirmar el viaje." : "If you are the customer, you can now pay to confirm the trip.",
     paid: es ? "El pago está retenido hasta que los dos confirmen que el viaje se hizo. Ya pueden ver sus datos de contacto." : "The payment is held until you both confirm the trip happened. You can now see each other's contact details.",
     cancelled: es ? "El acuerdo ya no está activo." : "The deal is no longer active.",
+    confirmed: es ? "Confírmalo tú también para cerrar el acuerdo y liberar el pago." : "Confirm it too to close the deal and release the payment.",
+    completed: es ? "Gracias por viajar con Collage Transport. Ya puedes calificar a la otra persona." : "Thanks for using Collage Transport. You can now rate the other person.",
   }[event]
   const cta = es ? "Ver el acuerdo" : "View the deal"
   const text = `${subject}\n${route}\n\n${body}\n\n${cta}: ${link}`

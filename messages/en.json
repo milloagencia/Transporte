@@ -69,7 +69,9 @@
     "waitingOther": "Waiting for the other party to reply.",
     "start": "Start deal",
     "starting": "Starting...",
-    "user": "User"
+    "user": "User",
+    "confirmedWaiting": "You confirmed the trip happened. Waiting for the other party to confirm.",
+    "otherConfirmed": "The other party already confirmed the trip happened. Confirm it to close the deal."
   },
   "admin": {
     "title": "Admin",

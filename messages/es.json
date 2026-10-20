@@ -69,7 +69,9 @@
     "waitingOther": "Esperando la respuesta de la otra parte.",
     "start": "Iniciar acuerdo",
     "starting": "Iniciando...",
-    "user": "Usuario"
+    "user": "Usuario",
+    "confirmedWaiting": "Ya confirmaste que el viaje se hizo. Esperando que la otra parte confirme.",
+    "otherConfirmed": "La otra parte ya confirmó que el viaje se hizo. Confírmalo tú para cerrar el acuerdo."
   },
   "admin": {
     "title": "Admin",

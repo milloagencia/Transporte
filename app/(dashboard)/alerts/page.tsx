@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { db } from "@/lib/db"
 import { getSessionUser } from "@/lib/guards"
 import { formatDate } from "@/lib/format"
@@ -11,6 +11,7 @@ export default async function AlertsPage() {
   if (!me) redirect("/auth/signin")
   const t = await getTranslations("alerts")
   const tt = await getTranslations("trip")
+  const locale = await getLocale()
   const alerts = await db.tripAlert.findMany({ where: { userId: me.id }, orderBy: [{ active: "desc" }, { createdAt: "desc" }] })
   const place = (c: string | null, s: string | null) => (c ? `${c}${s ? `, ${s}` : ""}` : s ?? t("any"))
 
@@ -31,7 +32,7 @@ export default async function AlertsPage() {
                   <p className="text-slate-600">
                     {t(`kind_${a.kind}`)}
                     {a.serviceType && ` · ${tt(a.serviceType)}`}
-                    {a.dateFrom && ` · ${formatDate(a.dateFrom)}`}{a.dateTo && ` – ${formatDate(a.dateTo)}`}
+                    {a.dateFrom && ` · ${formatDate(a.dateFrom, locale)}`}{a.dateTo && ` – ${formatDate(a.dateTo, locale)}`}
                   </p>
                   {a.requestId && <p><Link href={`/requests/${a.requestId}`} className="text-blue-700 hover:underline">{t("forRequest")}</Link></p>}
                   <p className="text-xs text-slate-500">{a.active ? t("active") : t("paused")} · {t("sent")}: {a.matchesSent}</p>

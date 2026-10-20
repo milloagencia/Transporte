@@ -21,12 +21,16 @@ export default function DealActions({
   proposals,
   currentUserId,
   isRequester,
+  iConfirmed = false,
+  otherConfirmed = false,
 }: {
   dealId: string
   status: string
   proposals: Proposal[]
   currentUserId: string
   isRequester: boolean
+  iConfirmed?: boolean
+  otherConfirmed?: boolean
 }) {
   const router = useRouter()
   const t = useTranslations("deals")
@@ -106,9 +110,16 @@ export default function DealActions({
         )
       )}
       {status === "paid_escrow" && (
-        <Button variant="outline" className="w-full" disabled={loading} onClick={() => post(`/api/deals/${dealId}/complete`)}>
-          {t("confirmComplete")}
-        </Button>
+        iConfirmed ? (
+          <p className="rounded-md bg-green-50 p-2 text-sm text-green-900">{t("confirmedWaiting")}</p>
+        ) : (
+          <div className="space-y-2">
+            {otherConfirmed && <p className="rounded-md bg-blue-50 p-2 text-sm text-blue-900">{t("otherConfirmed")}</p>}
+            <Button className="w-full" disabled={loading} onClick={() => post(`/api/deals/${dealId}/complete`)}>
+              {t("confirmComplete")}
+            </Button>
+          </div>
+        )
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {["negotiating", "accepted_pending_payment"].includes(status) && (

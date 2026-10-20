@@ -48,7 +48,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
           <p className="text-sm"><strong>{t("rate")}:</strong> {rateLabel(offer.proposedRate, offer.rateUnit, locale)}</p>
           {offer.anyDestination && <p className="rounded-md bg-blue-50 p-2 text-sm text-blue-900">{t("anyDestInfo")}</p>}
           <p className="text-sm"><strong>{td("driver")}:</strong> {offer.driver.name ?? td("user")}</p>
-          <p className="text-sm"><strong>{t("availability")}:</strong> {formatDateTime(offer.startWindowFrom)} – {formatDateTime(offer.startWindowTo)}</p>
+          <p className="text-sm"><strong>{t("availability")}:</strong> {formatDateTime(offer.startWindowFrom, locale)} – {formatDateTime(offer.startWindowTo, locale)}</p>
           {offer.vehicle && (
             <p className="text-sm"><strong>{t("vehicle")}:</strong> {offer.vehicle.make} {offer.vehicle.model} ({tv(`cat_${offer.vehicle.category}`)})</p>
           )}
@@ -75,7 +75,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ id
               compatible.map((r) => (
                 <Link key={r.id} href={`/requests/${r.id}`} className="flex items-center justify-between rounded-md border p-2 text-sm hover:bg-gray-50">
                   <span>
-                    {r.originCity} → {r.destCity} · {formatDate(r.windowFrom)} ·{" "}
+                    {r.originCity} → {r.destCity} · {formatDate(r.windowFrom, locale)} ·{" "}
                     {r.serviceType === "people"
                       ? `${r.passengerCount ?? 1} ${t("people").toLowerCase()}`
                       : `${inchesLabel(r.cargoLengthIn, r.cargoWidthIn, r.cargoHeightIn)}, ${Math.round(r.cargoWeightLbs ?? 0)} lb`}

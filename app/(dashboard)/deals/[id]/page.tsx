@@ -37,11 +37,13 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
   const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin"
   if (!isDriver && !isRequester && !isAdmin) notFound()
   const t = await getTranslations("reviews")
+  const td = await getTranslations("deals")
+  const ts = await getTranslations("status")
 
   // Privacy: emails are only shared once the trip is paid (PRD §5)
   const contactShared = ["paid_escrow", "completed"].includes(deal.status) || isAdmin
   const show = (u: { name: string | null; email: string; phone: string | null }) =>
-    contactShared ? [u.name ?? "Usuario", u.email, u.phone].filter(Boolean).join(" · ") : (u.name ?? "Usuario")
+    contactShared ? [u.name ?? td("user"), u.email, u.phone].filter(Boolean).join(" · ") : (u.name ?? td("user"))
 
   const myReview = deal.reviews.find((r) => r.authorId === currentUserId)
   const otherReview = deal.reviews.find((r) => r.authorId !== currentUserId)
@@ -51,13 +53,13 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <Card>
-        <CardHeader><CardTitle>Deal #{deal.id.slice(-8)}</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{td("dealNo", { id: deal.id.slice(-8) })}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Badge variant={deal.status === "completed" ? "success" : deal.status === "cancelled" ? "destructive" : "default"}>
-            {deal.status}
+            {ts(deal.status)}
           </Badge>
-          <p className="text-sm"><strong>Driver:</strong> <Link href={`/users/${deal.driver.id}`} className="text-blue-700 hover:underline">{show(deal.driver)}</Link></p>
-          <p className="text-sm"><strong>Requester:</strong> <Link href={`/users/${deal.requester.id}`} className="text-blue-700 hover:underline">{show(deal.requester)}</Link></p>
+          <p className="text-sm"><strong>{td("driver")}:</strong> <Link href={`/users/${deal.driver.id}`} className="text-blue-700 hover:underline">{show(deal.driver)}</Link></p>
+          <p className="text-sm"><strong>{td("requester")}:</strong> <Link href={`/users/${deal.requester.id}`} className="text-blue-700 hover:underline">{show(deal.requester)}</Link></p>
           {deal.tripOffer?.vehicle && (() => {
             const v = deal.tripOffer.vehicle
             // The plate helps the customer recognise the car; shared together with contact details
@@ -66,7 +68,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
                 {contactShared && v.plateNumber ? ` · ${t("plate")}: ${v.plateNumber} (${v.plateState ?? "NE"})` : ""}</p>
             )
           })()}
-          {deal.finalPrice && <p className="text-sm"><strong>Final Price:</strong> ${deal.finalPrice}</p>}
+          {deal.finalPrice && <p className="text-sm"><strong>{td("finalPrice")}:</strong> ${deal.finalPrice}</p>}
           {(isDriver || isRequester) && currentUserId && (
             <DealActions
               dealId={deal.id}
@@ -78,6 +80,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
                 proposedById: p.proposedById,
               }))}
               currentUserId={currentUserId}
+              isRequester={isRequester}
             />
           )}
         </CardContent>
@@ -87,7 +90,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader><CardTitle>{t("title")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            {canReview && <ReviewForm dealId={deal.id} otherName={other.name ?? "Usuario"} />}
+            {canReview && <ReviewForm dealId={deal.id} otherName={other.name ?? td("user")} />}
             {myReview && (
               <div className="text-sm">
                 <p className="font-medium">{t("yours")}: <Stars value={myReview.stars} /></p>
@@ -110,10 +113,10 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
       )}
 
       <Card>
-        <CardHeader><CardTitle>Proposal History</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{td("history")}</CardTitle></CardHeader>
         <CardContent>
           {deal.proposals.length === 0 ? (
-            <p className="text-sm text-gray-500">No proposals yet.</p>
+            <p className="text-sm text-gray-500">{td("noProposals")}</p>
           ) : (
             <ul className="space-y-3">
               {deal.proposals.map((p) => (
@@ -121,11 +124,11 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">${p.price}</span>
                     <Badge variant={p.status === "accepted" ? "success" : p.status === "rejected" ? "destructive" : "secondary"}>
-                      {p.status}
+                      {ts(p.status)}
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-500">
-                    By {p.proposedBy.name ?? "Usuario"} · {formatDateTime(p.createdAt)}
+                    {td("by", { name: p.proposedBy.name ?? td("user") })} · {formatDateTime(p.createdAt)}
                   </p>
                   {p.message && <p className="text-sm text-gray-700 mt-1">{p.message}</p>}
                 </li>

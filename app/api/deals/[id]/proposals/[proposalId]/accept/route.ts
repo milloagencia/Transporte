@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
+import { notifyDealEvent } from "@/lib/deal-mail"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { accountBlock } from "@/lib/guards"
@@ -21,21 +22,22 @@ export async function POST(
   }
 
   if (deal.status !== "negotiating") {
-    return NextResponse.json({ error: "Deal not in negotiating state" }, { status: 400 })
+    return NextResponse.json({ error: "deal_closed" }, { status: 400 })
   }
 
   const proposal = await db.proposal.findUnique({ where: { id: proposalId } })
   if (!proposal || proposal.dealId !== dealId) return NextResponse.json({ error: "Not found" }, { status: 404 })
   if (proposal.status !== "pending") {
-    return NextResponse.json({ error: "This proposal was already countered or closed" }, { status: 400 })
+    return NextResponse.json({ error: "proposal_closed" }, { status: 400 })
   }
   if (proposal.proposedById === userId) {
-    return NextResponse.json({ error: "Cannot accept your own proposal" }, { status: 400 })
+    return NextResponse.json({ error: "own_proposal" }, { status: 400 })
   }
 
   await db.$transaction([
     db.proposal.update({ where: { id: proposalId }, data: { status: "accepted" } }),
     db.deal.update({ where: { id: dealId }, data: { status: "accepted_pending_payment", finalPrice: proposal.price } }),
   ])
+  after(() => notifyDealEvent(dealId, userId, "accepted", proposal.price))
   return NextResponse.json({ ok: true })
 }
